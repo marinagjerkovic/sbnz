@@ -1,5 +1,7 @@
 package sbnz.integracija;
 
+import sbnz.integracija.siem_centar.facts.MaliciousIps;
+
 rule "Login error on same machine"
 	when
 		$log1: Log(type == "Login", status == "Error", $machine1: machine, $time1: time, $type: type1)
@@ -23,6 +25,7 @@ rule "Alarm"
 		System.out.println("Alarm: " + $a);
 end
 
+
 rule "Error log"
 	when
 		$l: Log(status == LogStatus.ERROR)
@@ -30,3 +33,51 @@ rule "Error log"
 		System.out.println("ERROR log! " + $l);
 		insert(new Alarm($l.getLogType(), $l.getUser(), $l.getMachine(), $l.getTime()))
 end
+
+
+rule "Login error with same user"
+	when 
+		$log1: Log(type == "Login", status == "Error", $user1: user, $type: type1, $time1: time)
+		$log2: Log(type == "Login", status == "Error", user.username.equals($user1.username), $time2:time, !$time1.equals($time2))
+	then 
+		System.out.println("Login error for same user! \n\t" + $log1+ "\n\t" + $log2);
+		insert(new Alarm($type1, $user1, null, $time2));
+end
+
+rule "15 login errors from same IP address in last 5 days"
+	when
+		$logList: ArrayList(size > 15) from collect (
+            Log(Log.time.isAfter(LocalDateTime.now().minusDays(5))), type == "Login", status == "Error")
+    then
+    	int sameIp;
+    	String ip = "";
+    	for (Object obj : &logList ){
+    		sameIP  = 1;
+    		Log log = (Log)obj;
+    		ip = log.getMachine().getIp();
+    		for (Object obj : &logList ){
+	    		Log log2 = (Log)obj;
+	    		if(ip.equals(log2.getMachine().getIp()) && !log.getTime().equals(log2.getTime())){
+	    			sameIp++;
+	    		}
+	    	}
+	    	if(sameIp >= 15){
+		    	System.out.println("Login errors more than 15 times from same ip addres in past 5 days!"+
+		    		log);
+				insert(new Alarm("attack", null, log.getMachine(), log.getTime()));
+				break;
+			}    	
+	    }
+end
+
+rule "Login error for malicious ip"
+	when 
+		$maliciousIps: MaliciousIps()
+		$log: Log($maliciousIps.getIps().contains(machine.ip))
+	then
+		System.out.println("log with malicious ip"+log);
+		insert(new Alarm("malicious", null, $log.getMachine(), log.getTime()));
+end		
+    	
+		
+
