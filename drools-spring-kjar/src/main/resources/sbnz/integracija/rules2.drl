@@ -1,1 +1,24 @@
 package sbnz.integracija;
+
+rule "Login error on same machine"
+	when
+		$log1: Log(type == "Login", status == "Error", $machine1: machine, $time1: time, $type: type1)
+		$log2: Log(type == "Login", status == "Error", machine.ip.equals($machine1.ip), !time.equals($time1))
+	then
+		System.out.println("Login error on same machine! \n\t" + $log1+ "\n\t" + $log2);
+		insert(new Alarm($type1, null, $machine, $time1));
+end
+
+rule "90 days inactive login attempt"
+	when 
+		$log1: Log(type == "Login", status == "Ok")
+	then
+	
+end
+
+rule "Alarm"
+	when
+		$a: Alarm()
+	then
+		System.out.println("Alarm: " + $a);
+end
