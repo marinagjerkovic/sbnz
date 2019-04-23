@@ -22,3 +22,11 @@ rule "Alarm"
 	then
 		System.out.println("Alarm: " + $a);
 end
+
+rule "Error log"
+	when
+		$l: Log(status == LogStatus.ERROR)
+	then
+		System.out.println("ERROR log! " + $l);
+		insert(new Alarm($l.getLogType(), $l.getUser(), $l.getMachine(), $l.getTime()))
+end
