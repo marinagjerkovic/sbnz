@@ -125,5 +125,29 @@ rule "Login error for malicious ip"
 		insert(new Alarm("malicious", null, $log.getMachine(), log.getTime()));
 end		
     	
-		
-
+rule "More than 6 threats registered for the same machine in last 10 days"
+	when 
+		$logList: ArrayList(size > 6) from collect (
+            Log(Log.time.isAfter(LocalDateTime.now().minusDays(10))), type == "AntivirusReport", status == LogStatus.VirusThreat)
+	then
+		int sameIp;
+    	String ip = "";
+    	for (Object obj : &logList ){
+    		sameIp  = 0;
+    		Log log = (Log)obj;
+    		ip = log.getMachine().getIp();
+    		for (Object obj : &logList ){
+	    		Log log2 = (Log)obj;
+	    		if(ip.equals(log2.getMachine().getIp())){
+	    			sameIp++;
+	    		}
+	    	}
+	    	sameIp--;
+	    	if(sameIp >= 7){
+		    	System.out.println("More than 6 threats registered in the last 10 days on the same ip address "+
+		    		log);
+				insert(new Alarm(log.getType(), null, log.getMachine(), log.getTime()));
+				break;
+			}    	
+	   
+ end
