@@ -4,19 +4,64 @@ import sbnz.integracija.siem_centar.facts.MaliciousIps;
 
 rule "Login error on same machine"
 	when
-		$log1: Log(type == "Login", status == "Error", $machine1: machine, $time1: time, $type: type1)
-		$log2: Log(type == "Login", status == "Error", machine.ip.equals($machine1.ip), !time.equals($time1))
+		$log1: Log(type == "Login", status == "Error", $machine: machine, $time: time, $type: type)
+		$log2: Log(type == "Login", status == "Error", machine.ip.equals($machine.ip), !time.equals($time))
 	then
 		System.out.println("Login error on same machine! \n\t" + $log1+ "\n\t" + $log2);
-		insert(new Alarm($type1, null, $machine, $time1));
+		insert(new Alarm($type, null, $machine, $time));
 end
 
 rule "90 days inactive login attempt"
 	when 
-		$log1: Log(type == "Login", status == "Ok")
+		$now: LocalDateTime()
+		$log: Log(type == "Login", $now.compareTo(user.lastActivity) >= 90 )
 	then
-	
+		System.out.println("Inactive user login attempt!" + $log);
+		insert(new Alarm($log.getType(), $log.getUser(), $log.getMachine(), $log.getTime()));
 end
+
+rule "Malicious ip login attempt"
+	when
+		$mals: MaliciousIps() 
+		$log: Log(type == "Login", machine.ip memberOf $mals)
+	then
+		System.out.println("Malicious ip login attempt!" + $log);
+		insert(new Alarm($log.getType(), $log.getUser(), $log.getMachine(), $log.getTime()));
+end
+
+rule "Payment system attack"
+	when
+		$now: LocalDateTime()
+		$logList : ArrayList(size > 50) from collect ( Log (time.isAfter($now.minusMinutes(1))))
+	then
+    	boolean isAttack = false;
+    	int counter = 0;
+    	for (Object el:$logList) {
+    		Log log = (Log)el;
+    		if (log.getType().equals("payment") {
+    			counter = counter + 1;
+    			if (counter > 50){
+    				isAttack = true;
+    				break;
+    			}
+    		}
+    	}
+    	if (isTypePayment) {
+    		System.out.println("Payment system is attacked!");
+        	insert(new Alarm("payment", null, null, null));
+    	}
+end
+
+
+/*
+rule "Antivirus threat not eliminated within hour"
+	when
+		$now: LocalDateTime()
+		$log: Log(type =="antivirus", status == "VirusThreat", $now.isAfter(time.plusHours(1)))
+		
+	then	
+end
+*/
 
 rule "Alarm"
 	when
@@ -28,7 +73,7 @@ end
 
 rule "Error log"
 	when
-		$l: Log(status == LogStatus.ERROR)
+		$l: Log(status == LogStatus.Error)
 	then
 		System.out.println("ERROR log! " + $l);
 		insert(new Alarm($l.getLogType(), $l.getUser(), $l.getMachine(), $l.getTime()))
@@ -37,7 +82,7 @@ end
 
 rule "Login error with same user"
 	when 
-		$log1: Log(type == "Login", status == "Error", $user1: user, $type: type1, $time1: time)
+		$log1: Log(type == "Login", status == "Error", $user1: user, $type1: type, $time1: time)
 		$log2: Log(type == "Login", status == "Error", user.username.equals($user1.username), $time2:time, !$time1.equals($time2))
 	then 
 		System.out.println("Login error for same user! \n\t" + $log1+ "\n\t" + $log2);
@@ -46,8 +91,9 @@ end
 
 rule "15 login errors from same IP address in last 5 days"
 	when
+		$now: LocalDateTime()
 		$logList: ArrayList(size > 15) from collect (
-            Log(Log.time.isAfter(LocalDateTime.now().minusDays(5))), type == "Login", status == "Error")
+            Log(time.isAfter($now.minusDays(5))), type == "Login", status == "Error")
     then
     	int sameIp;
     	String ip = "";
