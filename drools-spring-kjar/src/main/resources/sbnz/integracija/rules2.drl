@@ -25,6 +25,16 @@ rule "Alarm"
 		System.out.println("Alarm: " + $a);
 end
 
+
+rule "Error log"
+	when
+		$l: Log(status == LogStatus.ERROR)
+	then
+		System.out.println("ERROR log! " + $l);
+		insert(new Alarm($l.getLogType(), $l.getUser(), $l.getMachine(), $l.getTime()))
+end
+
+
 rule "Login error with same user"
 	when 
 		$log1: Log(type == "Login", status == "Error", $user1: user, $type: type1, $time1: time)
@@ -70,3 +80,4 @@ rule "Login error for malicious ip"
 end		
     	
 		
+
