@@ -1,6 +1,7 @@
 package sbnz.integracija.siem_center.facts;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 public class User implements Serializable{
 	
@@ -8,15 +9,13 @@ public class User implements Serializable{
 	
 	private String username;
 	private Risk risk;
-	
-	//kako ovo pamtimo?
-	private String lastActivity;
+	private LocalDateTime  lastActivity;
 	
 	public User() {
 		super();
 	}
 
-	public User(String username, Risk risk, String lastActivity) {
+	public User(String username, Risk risk, LocalDateTime lastActivity) {
 		super();
 		this.username = username;
 		this.risk = risk;
@@ -39,11 +38,11 @@ public class User implements Serializable{
 		this.risk = risk;
 	}
 
-	public String getLastActivity() {
+	public LocalDateTime getLastActivity() {
 		return lastActivity;
 	}
 
-	public void setLastActivity(String lastActivity) {
+	public void setLastActivity(LocalDateTime lastActivity) {
 		this.lastActivity = lastActivity;
 	}
 

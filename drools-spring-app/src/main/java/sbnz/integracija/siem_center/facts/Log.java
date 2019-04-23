@@ -8,26 +8,23 @@ public class Log implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private LogType type;
+	private LogStatus status;
 	private Machine machine;
 	private User user;
 	private LocalDateTime time;
 	private String text;
 	
-	//sta je status loga?
-	private String status;
-	
 	public Log() {
 		super();
 	}
 
-	public Log(LogType type, Machine machine, User user, LocalDateTime time, String text, String status) {
+	public Log(LogType type, Machine machine, User user, LocalDateTime time, String text, LogStatus status) {
 		super();
 		this.type = type;
 		this.machine = machine;
 		this.user = user;
 		this.time = time;
 		this.text = text;
-		this.status = status;
 	}
 
 	public LogType getType() {
@@ -70,11 +67,11 @@ public class Log implements Serializable {
 		this.text = text;
 	}
 
-	public String getStatus() {
+	public LogStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(LogStatus status) {
 		this.status = status;
 	}
 
