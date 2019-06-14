@@ -1,6 +1,9 @@
 package sbnz.integracija;
 
-import sbnz.integracija.siem_centar.facts.MaliciousIps;
+import sbnz.integracija.siem_center.facts.Log;
+import sbnz.integracija.siem_center.facts.Alarm;
+import sbnz.integracija.siem_center.facts.Risk;
+import sbnz.integracija.siem_center.facts.MaliciousIps;
 
 rule "Login error on same machine"
 	when
@@ -10,7 +13,7 @@ rule "Login error on same machine"
 		System.out.println("Login error on same machine! \n\t" + $log1+ "\n\t" + $log2);
 		insert(new Alarm($type, null, $machine, $time));
 end
-
+/*
 rule "90 days inactive login attempt"
 	when 
 		$now: LocalDateTime()
@@ -52,17 +55,6 @@ rule "Payment system attack"
     	}
 end
 
-
-/*
-rule "Antivirus threat not eliminated within hour"
-	when
-		$now: LocalDateTime()
-		$log: Log(type =="antivirus", status == "VirusThreat", $now.isAfter(time.plusHours(1)))
-		
-	then	
-end
-*/
-
 rule "Alarm"
 	when
 		$a: Alarm()
@@ -93,7 +85,7 @@ rule "15 login errors from same IP address in last 5 days"
 	when
 		$now: LocalDateTime()
 		$logList: ArrayList(size > 15) from collect (
-            Log(time.isAfter($now.minusDays(5))), type == "Login", status == "Error")
+            Log(time.isAfter($now.minusDays(5)), type == "Login", status == "Error"))
     then
     	int sameIp;
     	String ip = "";
@@ -128,7 +120,7 @@ end
 rule "More than 6 threats registered for the same machine in last 10 days"
 	when 
 		$logList: ArrayList(size > 6) from collect (
-            Log(Log.time.isAfter(LocalDateTime.now().minusDays(10))), type == "AntivirusReport", status == LogStatus.VirusThreat)
+            Log(Log.time.isAfter(LocalDateTime.now().minusDays(10)), type == "AntivirusReport", status == LogStatus.VirusThreat))
 	then
 		int sameIp;
     	String ip = "";
@@ -151,3 +143,14 @@ rule "More than 6 threats registered for the same machine in last 10 days"
 			}    	
 	   
  end
+
+ 
+ 
+rule "Antivirus threat not eliminated within hour"
+	when
+		$now: LocalDateTime()
+		$log: Log(type =="antivirus", status == "VirusThreat", $now.isAfter(time.plusHours(1)))
+		
+	then	
+end
+*/

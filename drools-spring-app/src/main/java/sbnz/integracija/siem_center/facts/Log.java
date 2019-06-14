@@ -7,7 +7,7 @@ public class Log implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private String type;
+	private LogType type;
 	private LogStatus status;
 	private Machine machine;
 	private User user;
@@ -18,7 +18,7 @@ public class Log implements Serializable {
 		super();
 	}
 
-	public Log(String type, Machine machine, User user, LocalDateTime time, String text, LogStatus status) {
+	public Log(LogType type, Machine machine, User user, LocalDateTime time, String text, LogStatus status) {
 		super();
 		this.type = type;
 		this.machine = machine;
@@ -27,11 +27,11 @@ public class Log implements Serializable {
 		this.text = text;
 	}
 
-	public String getType() {
+	public LogType getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(LogType type) {
 		this.type = type;
 	}
 

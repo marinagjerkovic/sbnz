@@ -7,15 +7,17 @@ public class Machine implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	private String ip;
+	private boolean maliciousIp;
 	private OperatingSystem os;
 	
 	public Machine() {
 		super();
 	}
 
-	public Machine(String ip, OperatingSystem os) {
+	public Machine(String ip, boolean maliciousIp, OperatingSystem os) {
 		super();
 		this.ip = ip;
+		this.maliciousIp = maliciousIp;
 		this.os = os;
 	}
 
@@ -35,10 +37,20 @@ public class Machine implements Serializable{
 		this.os = os;
 	}
 
+	public boolean isMaliciousIp() {
+		return maliciousIp;
+	}
+
+	public void setMaliciousIp(boolean maliciousIp) {
+		this.maliciousIp = maliciousIp;
+	}
+
 	@Override
 	public String toString() {
-		return "Machine [ip=" + ip + "]";
+		return "Machine [ip=" + ip + ", maliciousIp=" + maliciousIp + ", os=" + os + "]";
 	}
+
+	
 	
 	
 
