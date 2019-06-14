@@ -11,12 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import sbnz.integracija.siem_center.facts.Log;
+import sbnz.integracija.siem_center.facts.LogType;
 import sbnz.integracija.siem_center.facts.LogStatus;
 import sbnz.integracija.siem_center.facts.Machine;
 import sbnz.integracija.siem_center.facts.MaliciousIps;
 import sbnz.integracija.siem_center.facts.OperatingSystem;
 import sbnz.integracija.siem_center.facts.Risk;
-import sbnz.integracija.siem_center.facts.RiskType;
 import sbnz.integracija.siem_center.facts.User;
 
 @Service
@@ -39,7 +39,7 @@ public class SiemCenterService {
 		KieSession kieSession = kieContainer.newKieSession();
 		
 		//test za pojavu error log-a
-		Log errorLog = new Log("Login", new Machine("192.168.20.60", OperatingSystem.Windows), new User("username1",new Risk("condition1", RiskType.Low),LocalDateTime.parse("2019-04-08T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME)),LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME),"wrong password",LogStatus.Error);
+		Log errorLog = new Log(LogType.Login, new Machine("192.168.20.60", false, OperatingSystem.Windows), new User("username1", Risk.Low,LocalDateTime.parse("2019-04-08T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME)),LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME),"wrong password",LogStatus.Error);
 		kieSession.insert(errorLog);
 		kieSession.fireAllRules();
 		kieSession.dispose();
