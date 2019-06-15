@@ -7,7 +7,7 @@ public class Alarm implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private String alarmType;
+	private AlarmType alarmType;
 	private User user;
 	private Machine machine;
 	private LocalDateTime time;
@@ -16,7 +16,7 @@ public class Alarm implements Serializable {
 		super();
 	}
 
-	public Alarm(String alarmType, User user, Machine machine, LocalDateTime time) {
+	public Alarm(AlarmType alarmType, User user, Machine machine, LocalDateTime time) {
 		super();
 		this.alarmType = alarmType;
 		this.user = user;
@@ -24,11 +24,11 @@ public class Alarm implements Serializable {
 		this.time = time;
 	}
 
-	public String getAlarmType() {
+	public AlarmType getAlarmType() {
 		return alarmType;
 	}
 
-	public void setAlarmType(String alarmType) {
+	public void setAlarmType(AlarmType alarmType) {
 		this.alarmType = alarmType;
 	}
 
