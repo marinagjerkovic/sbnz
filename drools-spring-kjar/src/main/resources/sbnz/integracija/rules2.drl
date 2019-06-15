@@ -4,35 +4,51 @@ import java.time.LocalDateTime;
 
 import sbnz.integracija.siem_center.facts.Log;
 import sbnz.integracija.siem_center.facts.Alarm;
+import sbnz.integracija.siem_center.facts.Machine;
 import sbnz.integracija.siem_center.facts.Risk;
 import sbnz.integracija.siem_center.facts.MaliciousIps;
 import sbnz.integracija.siem_center.facts.AlarmType;
 import sbnz.integracija.siem_center.facts.LogStatus;
 import sbnz.integracija.siem_center.facts.LogType;
+import sbnz.integracija.siem_center.facts.User;
 
 rule "Login error on same machine"
 	when
-		$log1: Log(type.equals(LogType.Login), status.equals(LogStatus.Error), $machine: machine, $time: time, $type: type)
-		$log2: Log(type.equals(LogType.Login), status.equals(LogStatus.Error), machine.ip.equals($machine.ip), !time.equals($time))
+		$machine: Machine();
+		Number( intValue >=2 ) from accumulate (
+			Log(type.equals(LogType.Login), 
+			status.equals(LogStatus.Error), 
+			machine.getIp().equals($machine.getIp())),
+			init(int count = 0;),
+			action(count = count +1;),
+			result(count)
+		)
 	then
-		System.out.Println("ALARM: Login error on same machine!");
-		insert(new Alarm(AlarmType.Regular, null, $log1.getMachine(), $log1.getTime()));
+		System.out.println("ALARM: Login error on same machine!");
+		insert(new Alarm(AlarmType.Regular, null, $machine, LocalDateTime.now()));
 end
 
 rule "Login error with same username"
 	when 
-		$log1: Log(type.equals(LogType.Login), status.equals(LogStatus.Error), $user1: user, $type1: type, $time1: time)
-		$log2: Log(type.equals(LogType.Login), status.equals(LogStatus.Error), user.getUsername().equals($user1.getUsername()), $time2:time, !$time1.equals($time2))
+		$user: User();
+		Number (intValue >=2 ) from accumulate(
+			Log (type.equals(LogType.Login),
+			status.equals(LogStatus.Error),
+			user.getUsername().equals($user.getUsername())),
+			init(int count = 0;),
+			action(count = count+1;),
+			result(count)
+		)
 	then 
-		System.out.Println("ALARM: Login error with same username!");
-		insert(new Alarm(AlarmType.Regular, $user1, null, $time2));
+		System.out.println("ALARM: Login error with same username!");
+		insert(new Alarm(AlarmType.Regular, $user, null, LocalDateTime.now()));
 end
 
 rule "Error log"
 	when
 		$l: Log(status.equals(LogStatus.Error))
 	then
-		System.out.Println("ALARM: Error log!");
+		System.out.println("ALARM: Error log!");
 		insert(new Alarm(AlarmType.Regular, $l.getUser(), $l.getMachine(), $l.getTime()));
 end
 
@@ -40,8 +56,26 @@ rule "90 days inactive login attempt"
 	when 
 		$log: Log(type.equals(LogType.Login), user.getLastActivity().isBefore(LocalDateTime.now().minusDays(90)));
 	then
-		System.out.Println("ALARM: 90 days inactive user login attempt!");
+		System.out.println("ALARM: 90 days inactive user login attempt!");
 		insert(new Alarm(AlarmType.Regular, $log.getUser(), $log.getMachine(), $log.getTime()));
+end
+
+
+rule "15 login errors from same IP address in the last 5 days"
+	when
+		$machine: Machine();
+		Number( intValue >=15 ) from accumulate (
+			Log(type.equals(LogType.Login), 
+			status.equals(LogStatus.Error), 
+			time.isAfter(LocalDateTime.now().minusDays(5)),
+			machine.getIp().equals($machine.getIp())),
+			init(int count = 0;),
+			action(count = count +1;),
+			result(count)
+		)
+    then
+		System.out.println("ALARM:15 login errors from same IP address in the last 5 days!");
+		insert(new Alarm(AlarmType.Regular, null, $machine, LocalDateTime.now()));
 end
 
 rule "Alarm"
@@ -82,33 +116,6 @@ rule "Payment system attack"
     		System.out.println("Payment system is attacked!");
         	insert(new Alarm("payment", null, null, null));
     	}
-end
-
-rule "15 login errors from same IP address in last 5 days"
-	when
-		$now: LocalDateTime()
-		$logList: ArrayList(size > 15) from collect (
-            Log(time.isAfter($now.minusDays(5)), type == "Login", status == "Error"))
-    then
-    	int sameIp;
-    	String ip = "";
-    	for (Object obj : &logList ){
-    		sameIP  = 1;
-    		Log log = (Log)obj;
-    		ip = log.getMachine().getIp();
-    		for (Object obj : &logList ){
-	    		Log log2 = (Log)obj;
-	    		if(ip.equals(log2.getMachine().getIp()) && !log.getTime().equals(log2.getTime())){
-	    			sameIp++;
-	    		}
-	    	}
-	    	if(sameIp >= 15){
-		    	System.out.println("Login errors more than 15 times from same ip addres in past 5 days!"+
-		    		log);
-				insert(new Alarm("attack", null, log.getMachine(), log.getTime()));
-				break;
-			}    	
-	    }
 end
 
 rule "Login error for malicious ip"
