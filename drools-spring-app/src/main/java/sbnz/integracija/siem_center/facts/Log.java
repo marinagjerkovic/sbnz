@@ -25,6 +25,7 @@ public class Log implements Serializable {
 		this.user = user;
 		this.time = time;
 		this.text = text;
+		this.status = status;
 	}
 
 	public LogType getType() {
