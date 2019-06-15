@@ -11,13 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import sbnz.integracija.siem_center.facts.Log;
-import sbnz.integracija.siem_center.facts.LogType;
 import sbnz.integracija.siem_center.facts.LogStatus;
+import sbnz.integracija.siem_center.facts.LogType;
 import sbnz.integracija.siem_center.facts.Machine;
-import sbnz.integracija.siem_center.facts.MaliciousIps;
 import sbnz.integracija.siem_center.facts.OperatingSystem;
 import sbnz.integracija.siem_center.facts.Risk;
 import sbnz.integracija.siem_center.facts.User;
+
+
 
 @Service
 public class SiemCenterService {
@@ -71,14 +72,19 @@ public class SiemCenterService {
 			Log logError = new Log(LogType.Login, machine, new User("username"+i, Risk.Low, LocalDateTime.now()), LocalDateTime.parse("2019-06-14T11:1"+dat+":00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "failed login", LogStatus.Error);
 			kieSession.insert(logError);
 		}
+		
+		//two successful logins of the same user on two different machines in less then 10 seconds
+		User us = new User("username1", Risk.Low,LocalDateTime.parse("2019-04-08T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+		Log log1 = new Log(LogType.Login, new Machine ("192.168.20.60", false, OperatingSystem.Windows), us, LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "login success", LogStatus.Ok);
+		Log log2 = new Log(LogType.Login, new Machine ("192.168.20.70", false, OperatingSystem.Windows), us, LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "login success", LogStatus.Ok);
 		*/
 		
-		Log logError = new Log();
-		//kieSession.insert(machine);
-		//kieSession.insert(logError1);
-		//kieSession.insert(logError2);
+		Log log1 = new Log();
+		//kieSession.insert(us);
+		kieSession.insert(log1);
+		//kieSession.insert(log2);
 		kieSession.fireAllRules();
 		kieSession.dispose();
-		return logError;
+		return log1;
 	}
 }
