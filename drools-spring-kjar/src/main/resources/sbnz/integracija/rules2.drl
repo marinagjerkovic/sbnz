@@ -1,6 +1,8 @@
 package sbnz.integracija;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import sbnz.integracija.siem_center.facts.Log;
 import sbnz.integracija.siem_center.facts.Alarm;
@@ -21,6 +23,7 @@ rule "Login error on same machine"
 			machine.getIp().equals($machine.getIp())),
 			init(int count = 0;),
 			action(count = count +1;),
+			reverse(count = count-1;),
 			result(count)
 		)
 	then
@@ -37,6 +40,7 @@ rule "Login error with same username"
 			user.getUsername().equals($user.getUsername())),
 			init(int count = 0;),
 			action(count = count+1;),
+			reverse(count = count-1;),
 			result(count)
 		)
 	then 
@@ -64,18 +68,39 @@ end
 rule "15 login errors from same IP address in the last 5 days"
 	when
 		$machine: Machine();
-		Number( intValue >=15 ) from accumulate (
+		$count: Number( intValue >=15 ) from accumulate (
 			Log(type.equals(LogType.Login), 
 			status.equals(LogStatus.Error), 
 			time.isAfter(LocalDateTime.now().minusDays(5)),
 			machine.getIp().equals($machine.getIp())),
 			init(int count = 0;),
 			action(count = count +1;),
+			reverse(count = count-1;),
 			result(count)
 		)
     then
-		System.out.println("ALARM:15 login errors from same IP address in the last 5 days!");
+		System.out.println("ALARM: " +$count+" login errors from same IP address in the last 5 days!");
 		insert(new Alarm(AlarmType.Regular, null, $machine, LocalDateTime.now()));
+end
+
+rule "User logged in from two different IP addresses in less then 10 seconds"
+	when
+		$user: User()
+		exists (Log(status.equals(LogStatus.Ok), 
+					type.equals(LogType.Login), 
+					user.getUsername().equals($user.getUsername()),
+					$ip:machine.getIp(), 
+					$time:time) 
+				and
+				Log(status.equals(LogStatus.Ok), 
+					type.equals(LogType.Login), 
+					user.getUsername().equals($user.getUsername()),
+					!machine.getIp().equals($ip),
+					Math.abs(time.getSecond()-$time.getSecond())<=10)
+				)
+	then
+		System.out.println("ALARM: User logged in from two different IP addresses in less then 10 seconds!");
+		insert(new Alarm(AlarmType.Regular, $user, null, LocalDateTime.now()));
 end
 
 rule "Alarm"
@@ -84,6 +109,72 @@ rule "Alarm"
 	then
 		System.out.println("Alarm: " + $a);
 end
+/*
+rule "Antivirus threat not eliminated within hour"
+	when
+		$machine: Machine()
+		threatCount: Number() from accumulate (
+			Log(type.equals(LogType.VirusThreat),
+				time.isAfter(LocalDateTime.now().minusHour(1)),
+				machine.getIp().equals($machine.getIp())	
+			)
+			init(int count = 0;),
+			action(count= count+1;),
+			reverse(count = count -1;),
+			result(count)
+		)
+		threatsRemoved: Number(intValue == threatCount) from accumulate (
+			Log(type.equals(LogType.ThreatEliminated),
+				$time.isBefore(LocalDateTime.now().minusHour(1))
+				machine.getIp().equals($machine.getIp())	
+			)
+			init(int count = 0;),
+			action(count= count+1;),
+			reverse(count = count -1;),
+			result(count)
+		)
+		
+	then
+		
+end
+*/
+
+//testiraj
+rule "Seven or more threats from the same machine"
+	when
+		$machine: Machine()
+		$count: Number( intValue >=7) from accumulate (
+			Log(type.equals(LogType.VirusThreat), 
+				machine.getIp().equals($machine.getIp())),
+			over window: time(10d),
+			init(int count = 0;),
+			action(count=count+1;),
+			reverse(count=count-1;),
+			result(count)
+		)
+	then
+		System.out.println("ALARM: "+$count+" threats from ip address: "+$machine.getIp()+"!");
+		insert(new Alarm(AlarmType.Regular, $log.getUser(), $log.getMachine(), LocalDateTime.now()));
+end
+	
+rule "Malicious ip login attempt (or success)"
+	when
+		$log: Log(type.equals(LogType.Login), 
+		status.equals(LogStatus.Ok) || status.equals(LogStatus.Error),
+		machine.isMaliciousIp())
+	then
+		System.out.println("ALARM: Malicious ip login attempt (or success): "+$log.getMacine().getIp()+"!");
+		insert(new Alarm(AlarmType.Regular, $log.getUser(), $log.getMachine(), LocalDateTime.now()));
+end
+
+rule "Log from malicious machine"
+	when
+		$log: Log(machine.isMaliciousIp())
+	then
+		System.out.println("ALARM: Log from malicious ip: "+$log.getMacine().getIp()+"!");
+		insert(new Alarm(AlarmType.Regular, $log.getUser(), $log.getMachine(), LocalDateTime.now()));
+end
+
 /*
 
 rule "Malicious ip login attempt"
@@ -151,16 +242,5 @@ rule "More than 6 threats registered for the same machine in last 10 days"
 				insert(new Alarm(log.getType(), null, log.getMachine(), log.getTime()));
 				break;
 			}    	
-	   
  end
-
- 
- 
-rule "Antivirus threat not eliminated within hour"
-	when
-		$now: LocalDateTime()
-		$log: Log(type =="antivirus", status == "VirusThreat", $now.isAfter(time.plusHours(1)))
-		
-	then	
-end
 */
