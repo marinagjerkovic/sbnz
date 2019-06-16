@@ -104,10 +104,31 @@ public class SiemCenterService {
 		User us = new User("username1", Risk.Low,LocalDateTime.parse("2019-04-08T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME));
 		Log log1 = new Log(LogType.Login, new Machine ("192.168.20.60", false, OperatingSystem.Windows), us, LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "login success", LogStatus.Ok);
 		Log log2 = new Log(LogType.Login, new Machine ("192.168.20.70", false, OperatingSystem.Windows), us, LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "login success", LogStatus.Ok);
-		*/
 		
-		Log log1 = new Log();
-		//kieSession.insert(us);
+		//antivirus threat not eliminated within hour
+		Machine machine = new Machine ("192.168.20.60", false, OperatingSystem.Windows);
+		Log log1 = new Log(1, LogType.VirusThreat, LogStatus.Ok, machine, null, LocalDateTime.parse("2019-06-16T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "threat detected!");
+		Log log2 = new Log(2, LogType.ThreatEliminated, LogStatus.Ok, machine, null, LocalDateTime.parse("2019-06-16T12:21:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "thread removed;\nreporting log id: 1");
+		
+		
+		//profile info changed after login fails
+		Machine machine = new Machine ("192.168.20.60", false, OperatingSystem.Windows);
+		kieSession.insert(machine);
+		for (int i =0;i<6;i++) {
+			User us = new User(i, "username"+i, "password", Risk.Low, LocalDateTime.now());
+			Log log = new Log(i, LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now(), "login error");
+			kieSession.insert(log);
+		}
+		User us = new User(10, "username"+10, "password", Risk.Low, LocalDateTime.now());
+		Log log1 = new Log(10, LogType.Login, LogStatus.Ok, machine, us, LocalDateTime.now(), "login success!");
+		Log log2 = new Log(11, LogType.Information, LogStatus.Ok, machine, us, LocalDateTime.now(), "profile info changed");
+		*/
+
+		Machine machine = new Machine ("192.168.20.60", true, OperatingSystem.Windows);
+		User us = new User(10, "username"+10, "password", Risk.Low, LocalDateTime.now());
+		Log log1 = new Log(1, LogType.Login, LogStatus.Ok, machine, us, LocalDateTime.now(), "login success!");
+		
+		
 		kieSession.insert(log1);
 		//kieSession.insert(log2);
 		kieSession.fireAllRules();
