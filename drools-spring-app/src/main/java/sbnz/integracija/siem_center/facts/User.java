@@ -8,6 +8,7 @@ public class User implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	private String username;
+	private String password;
 	private Risk risk;
 	private LocalDateTime  lastActivity;
 	
@@ -15,9 +16,10 @@ public class User implements Serializable{
 		super();
 	}
 
-	public User(String username, Risk risk, LocalDateTime lastActivity) {
+	public User(String username, String password, Risk risk, LocalDateTime lastActivity) {
 		super();
 		this.username = username;
+		this.password = password;
 		this.risk = risk;
 		this.lastActivity = lastActivity;
 	}
@@ -46,11 +48,19 @@ public class User implements Serializable{
 		this.lastActivity = lastActivity;
 	}
 
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
 	@Override
 	public String toString() {
-		return "User [username=" + username + ", risk=" + risk + ", lastActivity=" + lastActivity + "]";
+		return "User [username=" + username + ", password=" + password + ", risk=" + risk + ", lastActivity="
+				+ lastActivity + "]";
 	}
-	
-	
+
 	
 }

@@ -7,6 +7,7 @@ public class Log implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
+	private int id;
 	private LogType type;
 	private LogStatus status;
 	private Machine machine;
@@ -17,15 +18,16 @@ public class Log implements Serializable {
 	public Log() {
 		super();
 	}
-
-	public Log(LogType type, Machine machine, User user, LocalDateTime time, String text, LogStatus status) {
+	
+	public Log(int id, LogType type, LogStatus status, Machine machine, User user, LocalDateTime time, String text) {
 		super();
+		this.id = id;
 		this.type = type;
+		this.status = status;
 		this.machine = machine;
 		this.user = user;
 		this.time = time;
 		this.text = text;
-		this.status = status;
 	}
 
 	public LogType getType() {
@@ -72,18 +74,25 @@ public class Log implements Serializable {
 		return status;
 	}
 
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
 	public void setStatus(LogStatus status) {
 		this.status = status;
 	}
 
 	@Override
 	public String toString() {
-		return "Log [type=" + type + ", machine=" + machine + ", user=" + user + ", time=" + time + ", text=" + text
-				+ ", status=" + status + ", getType()=" + getType() + ", getMachine()=" + getMachine() + ", getUser()="
-				+ getUser() + ", getTime()=" + getTime() + ", getText()=" + getText() + ", getStatus()=" + getStatus()
-				+ ", getClass()=" + getClass() + ", hashCode()=" + hashCode() + ", toString()=" + super.toString()
-				+ "]";
+		return "Log [id=" + id + ", type=" + type + ", status=" + status + ", machine=" + machine + ", user=" + user
+				+ ", time=" + time + ", text=" + text + "]";
 	}
+
+
 	
 	
 }
