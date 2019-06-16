@@ -1,13 +1,18 @@
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\LogStatus.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\User.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\Alarm.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\Log.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\SiemCenterApp.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\Risk.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\LogType.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\MaliciousIps.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\AlarmType.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\OperatingSystem.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\Machine.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\SiemCenterService.java
-C:\Users\Fujitsu E751\git\sbnz\drools-spring-app\src\main\java\sbnz\integracija\siem_center\SIemCenterController.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\LogType.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\repositories\UserRepository.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\Alarm.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\Machine.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\Log.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\User.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\repositories\MachineRepository.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\repositories\LogRepository.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\SiemCenterApp.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\SIemCenterController.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\AlarmType.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\repositories\AlarmRepository.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\LogStatus.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\SiemCenterService.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\factsDTO\LogDTO.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\factsDTO\AlarmDTO.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\OperatingSystem.java
+C:\Users\Marina\git\sbnz_novi\drools-spring-app\src\main\java\sbnz\integracija\siem_center\facts\Risk.java

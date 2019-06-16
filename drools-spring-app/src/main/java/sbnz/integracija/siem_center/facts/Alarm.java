@@ -3,26 +3,58 @@ package sbnz.integracija.siem_center.facts;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
+@Entity
 public class Alarm implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", updatable = false, nullable = false)
+	private Long id;
+	
+	@Column
 	private AlarmType alarmType;
+	
+	@ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
 	private User user;
+	
+	@ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
 	private Machine machine;
+	
+	@Column
 	private LocalDateTime time;
+	
+	@Column
+	private InformationSystem informationSystem;
 	
 	public Alarm() {
 		super();
 	}
 
-	public Alarm(AlarmType alarmType, User user, Machine machine, LocalDateTime time) {
+	
+
+	public Alarm(Long id, AlarmType alarmType, User user, Machine machine, LocalDateTime time,
+			InformationSystem informationSystem) {
 		super();
+		this.id = id;
 		this.alarmType = alarmType;
 		this.user = user;
 		this.machine = machine;
 		this.time = time;
+		this.informationSystem = informationSystem;
 	}
+
+
 
 	public AlarmType getAlarmType() {
 		return alarmType;
@@ -55,6 +87,30 @@ public class Alarm implements Serializable {
 	public void setTime(LocalDateTime time) {
 		this.time = time;
 	}
+	
+	
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+	
+	
+
+	public InformationSystem getInformationSystem() {
+		return informationSystem;
+	}
+
+
+
+	public void setInformationSystem(InformationSystem informationSystem) {
+		this.informationSystem = informationSystem;
+	}
+
+
 
 	@Override
 	public String toString() {
