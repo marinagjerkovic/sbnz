@@ -38,6 +38,7 @@ public class SiemCenterService {
 	private static Logger log = LoggerFactory.getLogger(SiemCenterService.class);
 
 	private final KieContainer kieContainer;
+	private KieSession kieSession;
 	
 	@Autowired
 	AlarmRepository alarmRepository;
@@ -57,14 +58,220 @@ public class SiemCenterService {
 	public SiemCenterService(KieContainer kieContainer) {
 		log.info("Initialising a new example session.");
 		this.kieContainer = kieContainer;
-		
+		this.kieSession = kieContainer.newKieSession();
+		kieSession.setGlobal("service", this);
 	}
 	
+	public void seed() {
+		
+		//users
+		User us1 = new User(1L, "username1", "password1", Risk.High, LocalDateTime.now(), true);
+		User us2 = new User(2L, "username2", "password2", Risk.Low, LocalDateTime.now(), false);
+		User us3 = new User(3L, "username3", "password3", Risk.Moderate, LocalDateTime.now(), true);
+		User us4 = new User(4L, "username4", "password4", Risk.Extreme, LocalDateTime.now(), false);
+		User us5 = new User(5L, "username5", "password5", Risk.High, LocalDateTime.now(), true);
+		User us6 = new User(6L, "username6", "password6", Risk.Low, LocalDateTime.now(), false);
+		User us7 = new User(7L, "username7", "password7", Risk.Moderate, LocalDateTime.now(), true);
+		User us8 = new User(8L, "username8", "password8", Risk.Extreme, LocalDateTime.now(), false);
+		User us9 = new User(9L, "username9", "password9", Risk.High, LocalDateTime.now(), true);
+		User us10 = new User(10L, "username10", "password10", Risk.Low, LocalDateTime.now(), false);
+		User us11 = new User(11L, "username11", "password11", Risk.Moderate, LocalDateTime.now(), true);
+		User us12 = new User(12L, "username12", "password12", Risk.Extreme, LocalDateTime.now(), false);
+		
+		
+		userRepository.save(us1);
+		userRepository.save(us2);
+		userRepository.save(us3);
+		userRepository.save(us4);
+		userRepository.save(us5);
+		userRepository.save(us6);
+		userRepository.save(us7);
+		userRepository.save(us8);
+		userRepository.save(us9);
+		userRepository.save(us10);
+		userRepository.save(us11);
+		userRepository.save(us12);
+		
+		//machines
+		Machine machine1 = new Machine(1L, "192.168.20.60", false, OperatingSystem.Windows);
+		Machine machine2 = new Machine(2L, "192.168.20.70", false, OperatingSystem.Windows);
+		Machine machine3 = new Machine(3L, "192.168.20.80", false, OperatingSystem.Windows);
+		Machine machine4 = new Machine(4L, "192.168.20.90", true, OperatingSystem.Windows);
+		
+		machineRepository.save(machine1);
+		machineRepository.save(machine2);
+		machineRepository.save(machine3);
+		machineRepository.save(machine4);
+	}
 	
+	public void simulateLoginErrorSameMachine() {
+		//get non-malicious machine 
+		Machine machine = machineRepository.getOne(1L);
+		//two different users
+		User us1 = userRepository.getOne(1L);
+		User us2 = userRepository.getOne(2L);
+		Log logError1 = new Log (LogType.Login, LogStatus.Error, machine, us1, LocalDateTime.now().minusSeconds(10), "failed login", InformationSystem.PaymentSystem);
+		Log logError2 = new Log (LogType.Login, LogStatus.Error, machine, us2, LocalDateTime.now(), "failed login", InformationSystem.PaymentSystem);
+		logError1 = logRepository.save(logError1);
+		logError2 = logRepository.save(logError2);
+		
+		this.kieSession.insert(machine);
+		this.kieSession.insert(logError1);
+		this.kieSession.insert(logError2);
+		this.kieSession.fireAllRules();
+	}
 	
-	public Log simulate(){
-		KieSession kieSession = kieContainer.newKieSession();
-		kieSession.setGlobal("service", this);
+	public void simulateLoginErrorSameUsername() {
+		//get user 
+		User us = userRepository.getOne(1L);
+		//machine
+		Machine machine = machineRepository.getOne(1L);
+		Log logError1 = new Log (LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now().minusSeconds(10), "failed login", InformationSystem.PaymentSystem);
+		Log logError2 = new Log (LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now(), "failed login", InformationSystem.PaymentSystem);
+		logError1 = logRepository.save(logError1);
+		logError2 = logRepository.save(logError2);
+		
+		this.kieSession.insert(us);
+		this.kieSession.insert(logError1);
+		this.kieSession.insert(logError2);
+		this.kieSession.fireAllRules();
+	}
+	
+	public void simulateLoginAttemptAfter90InactiveDays(){
+		//get user 
+		User us = userRepository.getOne(1L);
+		us.setLastActivity(LocalDateTime.now().minusDays(100));
+		us = userRepository.save(us);
+		//machine
+		Machine machine = machineRepository.getOne(1L);
+		Log logError1 = new Log (LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now(), "failed login", InformationSystem.PaymentSystem);
+		logError1 = logRepository.save(logError1);
+		
+		this.kieSession.insert(us);
+		this.kieSession.insert(logError1);
+		this.kieSession.fireAllRules();
+	}
+	
+	public void simulate15FailedLoginsSameIp(){
+		//get non-malicious machine 
+		Machine machine = machineRepository.getOne(1L);
+		this.kieSession.insert(machine);
+		
+		//different users would also work
+		User us = userRepository.findByUsername("username2");
+		for (int i = 0; i<15;i++){
+			Log logError = new Log (LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now(), "failed login", InformationSystem.PaymentSystem);
+			logError = logRepository.save(logError);
+			this.kieSession.insert(logError);
+		}
+		
+		this.kieSession.fireAllRules();
+	}
+	
+	public void simulateUserLoginFromTwoDifferentIps() {
+		User us = userRepository.findByUsername("username2");
+		this.kieSession.insert(us);
+		//get non-malicious machines
+		Machine machine1 = machineRepository.getOne(1L);
+		Machine machine2 = machineRepository.getOne(2L);
+		
+		Log log1 = new Log (LogType.Login, LogStatus.Ok, machine1, us, LocalDateTime.now(), "login success", InformationSystem.PaymentSystem);
+		//different parts of system
+		Log log2 = new Log (LogType.Login, LogStatus.Ok, machine2, us, LocalDateTime.now(), "login success", InformationSystem.PrivacySystem);
+		//same part of system
+		//Log log2 = new Log (LogType.Login, LogStatus.Ok, machine2, us, LocalDateTime.now(), "login success", InformationSystem.PaymentSystem);
+		
+		log1 = logRepository.save(log1);
+		log2 = logRepository.save(log2);
+		
+		this.kieSession.insert(log1);
+		this.kieSession.insert(log2);
+		this.kieSession.fireAllRules();
+	}
+	
+	public void simulateVirusThreatNotEliminatedWithinHour() {
+		Machine machine = machineRepository.getOne(1L);
+		this.kieSession.insert(machine);
+		
+		//virus found log
+		Log log1 = new Log (LogType.VirusThreat, LogStatus.Warning, machine, null, LocalDateTime.now().minusHours(1), "virus detected", InformationSystem.PaymentSystem);
+		log1 = logRepository.save(log1);
+		this.kieSession.insert(log1);
+		
+		//virus removed log
+		//Log log2 = new Log (LogType.ThreatEliminated, LogStatus.Ok, machine, null, LocalDateTime.now().minusMinutes(10), "virus removed; reporting log id: "+log1.getId(), InformationSystem.PaymentSystem);
+		//log2 = logRepository.save(log2);
+		//this.kieSession.insert(log2);
+		
+		this.kieSession.fireAllRules();
+	}
+	
+	public void simulateUserInfoChangeAfter5LoginErrors() {
+		Machine machine = machineRepository.getOne(1L);
+		this.kieSession.insert(machine);
+		
+		for (int i =3;i<=8;i++) {
+			User userError = userRepository.findByUsername("username"+i);
+			Log errorLog = new Log(LogType.Login, LogStatus.Error, machine, userError, LocalDateTime.now(), "login failed", InformationSystem.PaymentSystem);
+			errorLog = logRepository.save(errorLog);
+			this.kieSession.insert(errorLog);
+		}
+		
+		
+		User user = userRepository.findByUsername("username2");
+		Log loginLog = new Log(LogType.Login, LogStatus.Ok, machine, user, LocalDateTime.now(), "login success", InformationSystem.PaymentSystem);
+		loginLog = logRepository.save(loginLog);
+		Log infoChangedLog = new Log(LogType.Information, LogStatus.Ok, machine, user, LocalDateTime.now(), "profile info changed", InformationSystem.PaymentSystem);
+		infoChangedLog = logRepository.save(infoChangedLog);
+		
+		this.kieSession.insert(loginLog);
+		this.kieSession.insert(infoChangedLog);
+		this.kieSession.fireAllRules();
+	}
+	
+	public void simulate7VirusThreatsSameMachine() {
+		Machine machine = machineRepository.getOne(1L);
+		this.kieSession.insert(machine);
+		
+		//random user 
+		User us = userRepository.findByUsername("username8");
+		for (int i = 0;i<8;i++) {
+			Log errorLog = new Log(LogType.VirusThreat, LogStatus.Warning, machine, us, LocalDateTime.now(), "virus detected", InformationSystem.PaymentSystem);
+			errorLog = logRepository.save(errorLog);
+			this.kieSession.insert(errorLog);
+		}
+		
+		this.kieSession.fireAllRules();
+	}
+	
+	public void simulateLoginFromMaliciousIp() {
+		//get machine with malicious ip
+		Machine machine = machineRepository.getOne(4L);
+		this.kieSession.insert(machine);
+		
+		User user = userRepository.findByUsername("username4");
+		Log loginLog = new Log (LogType.Login, LogStatus.Ok, machine, user, LocalDateTime.now(), "login success", InformationSystem.PaymentSystem);
+		loginLog = logRepository.save(loginLog);
+		this.kieSession.insert(loginLog);
+		this.kieSession.fireAllRules();
+	}
+	
+	public void simulateIpBecomingMalicious() {
+		//getting non-malicious ip
+		Machine machine = machineRepository.getOne(1L);
+		this.kieSession.insert(machine);
+		User user = userRepository.findByUsername("username2");
+		for (int i =0;i<30;i++) {
+			Log loginLog = new Log(LogType.Login, LogStatus.Error, machine, user, LocalDateTime.now(), "login failed", InformationSystem.PaymentSystem);
+			loginLog = logRepository.save(loginLog);
+			this.kieSession.insert(loginLog);
+		}
+		this.kieSession.fireAllRules();
+	}
+	
+	//public Log simulate(){
+		//seed();
+		
 		
 		//test za pojavu error log-a
 		/*
@@ -77,42 +284,6 @@ public class SiemCenterService {
 	
 		/*
 		//simulations
-		//login error on same machine
-		Machine machine = new Machine("192.168.20.60", false, OperatingSystem.Windows);
-		Log logError1 = new Log (LogType.Login, machine, new User("username1", Risk.Low,LocalDateTime.parse("2019-04-08T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME)),LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "failed login", LogStatus.Error);
-		Log logError2 = new Log (LogType.Login, machine, new User("username2", Risk.Low,LocalDateTime.parse("2019-04-08T11:12:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME)),LocalDateTime.parse("2019-04-23T11:12:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "failed login", LogStatus.Error);
-		
-		//login error with same username
-		User us = new User("username1", Risk.Low,LocalDateTime.parse("2019-04-08T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-		Log logError1 = new Log (LogType.Login, new Machine ("192.168.20.60", false, OperatingSystem.Windows), us, LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "failed login", LogStatus.Error);
-		Log logError2 = new Log (LogType.Login, new Machine ("192.168.20.70", false, OperatingSystem.Windows), us, LocalDateTime.parse("2019-04-23T11:12:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "failed login", LogStatus.Error);		
-		
-		
-		//90 days inactive
-		User us = new User("username1", Risk.Low, LocalDateTime.parse("2018-04-08T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-		Log logError1 = new Log (LogType.Login, new Machine ("192.168.20.60", false, OperatingSystem.Windows), us, LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "login attempt", LogStatus.Warning);
-		
-		//15+ login errors from the same ip address in the last 5 days
-		Machine machine = new Machine("192.168.20.60", false, OperatingSystem.Windows);
-		int dat = -1;
-		for (int i = 0;i<=16;i++) {
-			if (dat<9) {
-				dat++;
-			}
-			Log logError = new Log(LogType.Login, machine, new User("username"+i, Risk.Low, LocalDateTime.now()), LocalDateTime.parse("2019-06-14T11:1"+dat+":00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "failed login", LogStatus.Error);
-			kieSession.insert(logError);
-		}
-		
-		//two successful logins of the same user on two different machines in less then 10 seconds
-		User us = new User("username1", Risk.Low,LocalDateTime.parse("2019-04-08T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-		Log log1 = new Log(LogType.Login, new Machine ("192.168.20.60", false, OperatingSystem.Windows), us, LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "login success", LogStatus.Ok);
-		Log log2 = new Log(LogType.Login, new Machine ("192.168.20.70", false, OperatingSystem.Windows), us, LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "login success", LogStatus.Ok);
-		
-		//antivirus threat not eliminated within hour
-		Machine machine = new Machine ("192.168.20.60", false, OperatingSystem.Windows);
-		Log log1 = new Log(1, LogType.VirusThreat, LogStatus.Ok, machine, null, LocalDateTime.parse("2019-06-16T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "threat detected!");
-		Log log2 = new Log(2, LogType.ThreatEliminated, LogStatus.Ok, machine, null, LocalDateTime.parse("2019-06-16T12:21:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME), "thread removed;\nreporting log id: 1");
-		
 		
 		//profile info changed after login fails
 		Machine machine = new Machine ("192.168.20.60", false, OperatingSystem.Windows);
@@ -155,8 +326,8 @@ public class SiemCenterService {
 		
 		kieSession.insert(highAlarm);
 		kieSession.insert(moderateAlarm);
-		*/
-	
+		
+		
 		Machine machine = new Machine ("192.168.20.60", false, OperatingSystem.Windows);
 		User us = userRepository.findByUsername("username4");
 		Log log1 = new Log(2L, LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now().minusHours(1).minusMinutes(1), "login failed", InformationSystem.PaymentSystem);
@@ -182,9 +353,9 @@ public class SiemCenterService {
 		kieSession.insert(log4);
 		//kieSession.insert(log2);
 		kieSession.fireAllRules();
-		kieSession.dispose();
-		return log1;
-	}
+		//kieSession.dispose();
+		return log1;*/
+	//}
 	
 	public List<LogDTO> getAllLogs(){
 		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
@@ -262,13 +433,11 @@ public class SiemCenterService {
 		
 	}
 	
-	public void setUserRisk(User user, Risk newRisk) {
-		user.setRisk(newRisk);
+	public void setUserRisk(User user) {
 		userRepository.save(user);
 	}
 	
 	public void addIpToMalicious(Machine machine) {
-		machine.setMaliciousIp(true);
 		machineRepository.save(machine);
 	}
 	

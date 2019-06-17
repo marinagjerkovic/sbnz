@@ -30,13 +30,14 @@ rule "Detecting low risk users"
 		)
 	then
 			System.out.println("User "+$user.getUsername()+"'s risk has been set to Low");
-			service.setUserRisk($user, Risk.Low);
+			modify ($user) { setRisk (Risk.Low)};
+			service.setUserRisk($user);
 end
 
 //moderate risk
 rule "Detecting moderate risk users - antivirus"
 	when 
-		$user: User(!risk.equals(Risk.Moderate))
+		$user: User(!risk.equals(Risk.Moderate) && !risk.equals(Risk.Extreme))
 		exists (
 			Alarm (
 				user.getId()== $user.getId(), 
@@ -46,12 +47,13 @@ rule "Detecting moderate risk users - antivirus"
 		)
 	then
 		System.out.println("User "+$user.getUsername()+"'s risk has been set to Moderate");
-		service.setUserRisk($user, Risk.Moderate);	
+		modify ($user) { setRisk (Risk.Moderate)};
+		service.setUserRisk($user);	
 end
 
 rule "Detecting moderate risk users - login errors"
 	when 
-		$user: User(!risk.equals(Risk.Moderate))
+		$user: User(!risk.equals(Risk.Moderate) && !risk.equals(Risk.Extreme))
 		List (size> 15) from collect (
 			Log (
 				type.equals(LogType.Login),
@@ -61,14 +63,15 @@ rule "Detecting moderate risk users - login errors"
 		)
 	then
 		System.out.println("User "+$user.getUsername()+"'s risk has been set to Moderate");
-		service.setUserRisk($user, Risk.Moderate);	
+		modify ($user) { setRisk (Risk.Moderate)};
+		service.setUserRisk($user);	
 end
 
 //high risk
 rule "Detecting high risk users - any alarm"
 	when
 		$user: User( 
-			!risk.equals(Risk.High),
+			!risk.equals(Risk.High) && !risk.equals(Risk.Extreme),
 			isAdmin
 		)
 		exists (
@@ -76,13 +79,14 @@ rule "Detecting high risk users - any alarm"
 		)
 	then
 		System.out.println("User "+$user.getUsername()+"'s risk has been set to High");
-		service.setUserRisk($user, Risk.High);
+		modify ($user) { setRisk (Risk.High)};
+		service.setUserRisk($user);
 end
 
 rule "Detecting high risk users - login"
 	when 
 		$user: User(
-			!risk.equals(Risk.High),
+			!risk.equals(Risk.High) && !risk.equals(Risk.Extreme),
 			isAdmin
 		)
 		$loginLog: Log(
@@ -101,7 +105,8 @@ rule "Detecting high risk users - login"
 		)
 	then
 		System.out.println("User "+$user.getUsername()+"'s risk has been set to High");
-		service.setUserRisk($user, Risk.High);
+		modify ($user) { setRisk (Risk.High)};
+		service.setUserRisk($user);
 end
 
 //extreme risk
@@ -138,7 +143,8 @@ rule "Detecting extreme risk users - login and info changed"
 		)
 	then
 		System.out.println("User "+$user.getUsername()+"'s risk has been set to Extreme");
-		service.setUserRisk($user, Risk.Extreme);
+		modify ($user) { setRisk (Risk.Extreme)};
+		service.setUserRisk($user);
 end
 
 rule "Detecting extreme risk users - malicious ips"
@@ -146,10 +152,11 @@ rule "Detecting extreme risk users - malicious ips"
 		$user: User(!risk.equals(Risk.Extreme))
 		Log (
 			type.equals(LogType.Login),
-			machine.isMaliciousIp(), 
+			machine.getMaliciousIp(),
 			user.getId() == $user.getId()
 		)
 	then
 		System.out.println("User "+$user.getUsername()+"'s risk has been set to Extreme");
-		service.setUserRisk($user, Risk.Extreme);
+		modify ($user) { setRisk (Risk.Extreme)};
+		service.setUserRisk($user);
 end

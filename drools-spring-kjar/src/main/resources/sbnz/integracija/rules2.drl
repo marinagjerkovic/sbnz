@@ -14,7 +14,12 @@ import sbnz.integracija.siem_center.facts.LogType;
 import sbnz.integracija.siem_center.facts.User;
 import sbnz.integracija.siem_center.facts.InformationSystem;
 
+import sbnz.integracija.siem_center.facts.OperatingSystem;
+
+global SiemCenterService service;
+
 rule "Login error on same machine"
+	enabled false
 	when
 		$machine: Machine();
 		List( size >=2 ) from collect (
@@ -30,6 +35,7 @@ rule "Login error on same machine"
 end
 
 rule "Login error with same username"
+	enabled false
 	when 
 		$user: User();
 		List (size >=2 ) from collect(
@@ -45,6 +51,7 @@ rule "Login error with same username"
 end
 
 rule "Error log"
+	enabled false
 	when
 		$l: Log(status.equals(LogStatus.Error))
 	then
@@ -63,7 +70,6 @@ rule "90 days inactive login attempt"
 		insert(new Alarm(AlarmType.Login, $log.getUser(), $log.getMachine(), $log.getTime(), $log.getInformationSystem()));
 end
 
-//info system
 rule "15 login errors from same IP address in the last 5 days"
 	when
 		$machine: Machine();
@@ -80,8 +86,6 @@ rule "15 login errors from same IP address in the last 5 days"
 		insert(new Alarm(AlarmType.Login, new User(), $machine, LocalDateTime.now(), null));
 end
 
-
-//info system
 rule "User logged in from two different IP addresses in less then 10 seconds"
 	when
 		$user: User()
@@ -90,6 +94,7 @@ rule "User logged in from two different IP addresses in less then 10 seconds"
 					type.equals(LogType.Login), 
 					user.getUsername().equals($user.getUsername()),
 					$ip:machine.getIp(), 
+					$is: informationSystem,
 					$time:time) 
 				and
 				Log(
@@ -97,8 +102,10 @@ rule "User logged in from two different IP addresses in less then 10 seconds"
 					type.equals(LogType.Login), 
 					user.getUsername().equals($user.getUsername()),
 					!machine.getIp().equals($ip),
-					Math.abs(time.getSecond()-$time.getSecond())<=10)
+					Math.abs(time.getSecond()-$time.getSecond())<=10,
+					!informationSystem.equals($is)
 				)
+		)
 	then
 		System.out.println("ALARM: User logged in from two different IP addresses in less then 10 seconds!");
 		insert(new Alarm(AlarmType.Login, $user, null, LocalDateTime.now(), null));
@@ -170,19 +177,15 @@ end
 rule "Seven or more threats from the same machine"
 	when
 		$machine: Machine()
-		$count: Number( intValue >=7) from accumulate (
+		$list: List( size >=7) from collect (
 			Log(
 				type.equals(LogType.VirusThreat), 
 				machine.getIp().equals($machine.getIp())
 			)
-			over window:time(10d),
-			init(int count = 0;),
-			action(count=count+1;),
-			reverse(count=count-1;),
-			result(count)
+			over window:time(10d)
 		)
 	then
-		System.out.println("ALARM: "+$count+" threats from ip address: "+$machine.getIp()+"!");
+		System.out.println("ALARM: "+$list.size()+" threats from ip address: "+$machine.getIp()+"!");
 		insert(new Alarm(AlarmType.Antivirus, new User(), $machine, LocalDateTime.now(), null));
 end
 	
@@ -191,7 +194,8 @@ rule "Malicious ip login attempt (or success)"
 		$log: Log(
 			type.equals(LogType.Login), 
 			status.equals(LogStatus.Ok) || status.equals(LogStatus.Error),
-			machine.isMaliciousIp())
+			machine.getMaliciousIp()
+		)
 	then
 		System.out.println("ALARM: Malicious ip login attempt (or success): "+$log.getMachine().getIp()+"!");
 		insert(new Alarm(AlarmType.MaliciousIp, $log.getUser(), $log.getMachine(), LocalDateTime.now(), $log.getInformationSystem()));
@@ -199,26 +203,27 @@ end
 
 rule "Log from malicious machine"
 	when
-		$log: Log(machine.isMaliciousIp())
+		$log: Log(machine.getMaliciousIp())
 	then
 		System.out.println("ALARM: Log from malicious ip: "+$log.getMachine().getIp()+"!");
 		insert(new Alarm(AlarmType.MaliciousIp, $log.getUser(), $log.getMachine(), LocalDateTime.now(), $log.getInformationSystem()));
 end
 
-//check
 rule "Add IP address to malicious ips"
 	when
-		$machine: Machine(!isMaliciousIp)
+		$machine: Machine(!maliciousIp)
 		List(size>=30) from collect (
 			Log(
 				type.equals(LogType.Login),
-				status.equals(LogType.Error),
+				status.equals(LogStatus.Error),
 				machine.getIp().equals($machine.getIp())
 			)
 			over window:time(1d)
 		)
 	then
-		addIpToMalicious($machine);
+		modify ($machine) { setMaliciousIp(true)}
+		System.out.println($machine.getIp() + " has been added to malicious ips list!");
+		service.addIpToMalicious($machine);
 end
 
 rule "Alarm"

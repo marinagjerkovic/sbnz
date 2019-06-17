@@ -28,13 +28,84 @@ public class SIemCenterController {
 	}
 	
 	
-	@RequestMapping(value="/simulateLog", method=RequestMethod.GET)
-	public Log simulateLog(){
+	@RequestMapping(value="/simulateLoginErrorSameMachine", method=RequestMethod.GET)
+	public void simulateLoginErrorSameMachine(){
 		log.debug("Simulating log");
 		
-		Log l = siemCenterService.simulate();
-		return l;
+		siemCenterService.simulateLoginErrorSameMachine();
 	}
+	
+	@RequestMapping(value="/simulateLoginErrorSameUsername", method=RequestMethod.GET)
+	public void simulateLoginErrorSameUsername(){
+		log.debug("Simulating log");
+
+		siemCenterService.simulateLoginErrorSameUsername();
+	}
+	
+	@RequestMapping(value="/simulateLoginAttemptAfter90InactiveDays", method=RequestMethod.GET)
+	public Log simulateLoginAttemptAfter90InactiveDays(){
+		log.debug("Simulating log");
+
+		siemCenterService.simulateLoginAttemptAfter90InactiveDays();
+		return null;
+	}
+	
+	@RequestMapping(value="/simulate15FailedLoginsSameIp", method=RequestMethod.GET)
+	public Log simulate15FailedLoginsSameIp(){
+		log.debug("Simulating log");
+
+		siemCenterService.simulate15FailedLoginsSameIp();
+		return null;
+	}
+	
+	@RequestMapping(value="/simulateIpBecomingMalicious", method=RequestMethod.GET)
+	public Log simulateIpBecomingMalicious(){
+		log.debug("Simulating log");
+
+		siemCenterService.simulateIpBecomingMalicious();
+		return null;
+	}
+	
+	@RequestMapping(value="/simulateUserLoginFromTwoDifferentIps", method=RequestMethod.GET)
+	public Log simulateUserLoginFromTwoDifferentIps(){
+		log.debug("Simulating log");
+
+		siemCenterService.simulateUserLoginFromTwoDifferentIps();
+		return null;
+	}
+	
+	@RequestMapping(value="/simulateVirusThreatNotEliminatedWithinHour", method=RequestMethod.GET)
+	public Log simulateVirusThreatNotEliminatedWithinHour(){
+		log.debug("Simulating log");
+
+		siemCenterService.simulateVirusThreatNotEliminatedWithinHour();
+		return null;
+	}
+	
+	@RequestMapping(value="/simulateUserInfoChangeAfter5LoginErrors", method=RequestMethod.GET)
+	public Log simulateUserInfoChangeAfter5LoginErrors (){
+		log.debug("Simulating log");
+
+		siemCenterService.simulateUserInfoChangeAfter5LoginErrors();
+		return null;
+	}
+	
+	@RequestMapping(value="/simulate7VirusThreatsSameMachine", method=RequestMethod.GET)
+	public Log simulate7VirusThreatsSameMachine (){
+		log.debug("Simulating log");
+
+		siemCenterService.simulate7VirusThreatsSameMachine();
+		return null;
+	}
+	
+	@RequestMapping(value="/simulateLoginFromMaliciousIp", method=RequestMethod.GET)
+	public Log simulateLoginFromMaliciousIp (){
+		log.debug("Simulating log");
+
+		siemCenterService.simulateLoginFromMaliciousIp();
+		return null;
+	}
+	
 	
 	@RequestMapping(path="/createLog", method = RequestMethod.POST, consumes="application/json")
 	public ResponseEntity<String> createLog(@RequestBody LogDTO newLog){

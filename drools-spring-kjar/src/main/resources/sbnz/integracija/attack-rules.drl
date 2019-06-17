@@ -1,0 +1,10 @@
+package sbnz.integracija
+
+
+import sbnz.integracija.siem_center.facts.Log;
+rule " attack"
+	when
+		Log (type.equals(LogType.Login))
+	then
+		System.out.println("");
+end	
