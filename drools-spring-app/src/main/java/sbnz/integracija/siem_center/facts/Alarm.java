@@ -28,6 +28,18 @@ public class Alarm implements Serializable {
 	@ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
 	private User user;
 	
+	public Alarm(AlarmType alarmType, User user, Machine machine, LocalDateTime time,
+			InformationSystem informationSystem) {
+		super();
+		this.alarmType = alarmType;
+		this.user = user;
+		this.machine = machine;
+		this.time = time;
+		this.informationSystem = informationSystem;
+	}
+
+
+
 	@ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
 	private Machine machine;
 	

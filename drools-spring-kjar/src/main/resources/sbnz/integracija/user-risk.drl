@@ -1,6 +1,23 @@
 package sbnz.integracija;
 
-/*second high
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import sbnz.integracija.siem_center.facts.Log;
+import sbnz.integracija.siem_center.facts.Alarm;
+import sbnz.integracija.siem_center.facts.Machine;
+import sbnz.integracija.siem_center.facts.Risk;
+import sbnz.integracija.siem_center.facts.AlarmType;
+import sbnz.integracija.siem_center.facts.LogStatus;
+import sbnz.integracija.siem_center.facts.LogType;
+import sbnz.integracija.siem_center.facts.User;
+import sbnz.integracija.siem_center.facts.InformationSystem;
+import sbnz.integracija.siem_center.SiemCenterService;
+
+
+global SiemCenterService service;
+
 //low risk
 rule "Detecting low risk users"
 	when
@@ -12,7 +29,8 @@ rule "Detecting low risk users"
 			) 
 		)
 	then
-			setUserRisk($user, RiskType.Low);
+			System.out.println("User "+$user.getUsername()+"'s risk has been set to Low");
+			service.setUserRisk($user, Risk.Low);
 end
 
 //moderate risk
@@ -27,7 +45,8 @@ rule "Detecting moderate risk users - antivirus"
 			)
 		)
 	then
-		setUserRisk($user, RiskType.Moderate);	
+		System.out.println("User "+$user.getUsername()+"'s risk has been set to Moderate");
+		service.setUserRisk($user, Risk.Moderate);	
 end
 
 rule "Detecting moderate risk users - login errors"
@@ -41,7 +60,8 @@ rule "Detecting moderate risk users - login errors"
 			)
 		)
 	then
-		setUserRisk($user, RiskType.Moderate);	
+		System.out.println("User "+$user.getUsername()+"'s risk has been set to Moderate");
+		service.setUserRisk($user, Risk.Moderate);	
 end
 
 //high risk
@@ -55,7 +75,8 @@ rule "Detecting high risk users - any alarm"
 			Alarm (user.getId() == $user.getId())
 		)
 	then
-		setUserRisk($user, RiskType.High);
+		System.out.println("User "+$user.getUsername()+"'s risk has been set to High");
+		service.setUserRisk($user, Risk.High);
 end
 
 rule "Detecting high risk users - login"
@@ -64,9 +85,23 @@ rule "Detecting high risk users - login"
 			!risk.equals(Risk.High),
 			isAdmin
 		)
-		
+		$loginLog: Log(
+			type.equals(LogType.Login), 
+			status.equals(LogStatus.Ok), 
+			user.getId() == $user.getId(),
+			time.getHour()<8 || time.getHour()>17
+		)
+		List (size>=2) from collect(
+			Log(
+				type.equals(LogType.Login),
+				status.equals(LogStatus.Error),
+				time.isAfter(LocalDateTime.now().minusSeconds(90)),
+				user.getId() == $user.getId()
+			)
+		)
 	then
-		setUserRisk($user, RiskType.High);
+		System.out.println("User "+$user.getUsername()+"'s risk has been set to High");
+		service.setUserRisk($user, Risk.High);
 end
 
 //extreme risk
@@ -83,37 +118,27 @@ rule "Detecting extreme risk users - login and info changed"
 		$loginLog: Log(
 			type.equals(LogType.Login), 
 			status.equals(LogStatus.Ok), 
-			user.getId() == $user.getId())
+			user.getId() == $user.getId()
 		)
 		$infoChangedLog: Log(
 			type.equals(LogType.Information), 
 			status.equals(LogStatus.Ok), 
 			text.contains("profile info changed"),
 			user.getId() == $loginLog.getUser().getId(),
-			time.isAfter($loginLog.getTime())
+			//ukoliko su podaci mijenjani u periodu od 90 sekundi nakon logovanja
+			time.isAfter($loginLog.getTime()) && time.isBefore($loginLog.getTime().plusSeconds(90))
 		)
-		$count: Number (intValue >=2 ) from accumulate(
+		List (size >=2 ) from collect(
 			Log( 
 				type.equals(LogType.Login),
 				status.equals(LogStatus.Error),
-				time.isAfter(LocalDateTime.now().minusSeconds(90)),
+				time.isAfter($loginLog.getTime().minusSeconds(90)) && time.isBefore($loginLog.getTime()),
 				user.getId() == $user.getId()
-			),
-			init(List<Integer> userIds = new ArrayList<Integer>();),
-			action(
-				if (!userIds.contains($user.getId())){
-					userIds.add($user.getId();
-				}		
-			),
-			reverse(
-				if (userIds.contains($user.getId())){
-					userIds.remove($user.getId());
-				}
-			),
-			result(userIds.size())
+			)
 		)
 	then
-		setUserRisk($user, Risk.Exteme);
+		System.out.println("User "+$user.getUsername()+"'s risk has been set to Extreme");
+		service.setUserRisk($user, Risk.Extreme);
 end
 
 rule "Detecting extreme risk users - malicious ips"
@@ -121,10 +146,10 @@ rule "Detecting extreme risk users - malicious ips"
 		$user: User(!risk.equals(Risk.Extreme))
 		Log (
 			type.equals(LogType.Login),
-			machine.getIp().isMalicious(), 
+			machine.isMaliciousIp(), 
 			user.getId() == $user.getId()
 		)
 	then
-		setUserRisk($user, Risk.Exteme);
+		System.out.println("User "+$user.getUsername()+"'s risk has been set to Extreme");
+		service.setUserRisk($user, Risk.Extreme);
 end
-*/

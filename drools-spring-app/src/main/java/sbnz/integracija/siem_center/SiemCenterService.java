@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import sbnz.integracija.siem_center.facts.Alarm;
+import sbnz.integracija.siem_center.facts.AlarmType;
+import sbnz.integracija.siem_center.facts.InformationSystem;
 import sbnz.integracija.siem_center.facts.Log;
 import sbnz.integracija.siem_center.facts.LogStatus;
 import sbnz.integracija.siem_center.facts.LogType;
@@ -62,6 +64,7 @@ public class SiemCenterService {
 	
 	public Log simulate(){
 		KieSession kieSession = kieContainer.newKieSession();
+		kieSession.setGlobal("service", this);
 		
 		//test za pojavu error log-a
 		/*
@@ -123,14 +126,60 @@ public class SiemCenterService {
 		Log log1 = new Log(10, LogType.Login, LogStatus.Ok, machine, us, LocalDateTime.now(), "login success!");
 		Log log2 = new Log(11, LogType.Information, LogStatus.Ok, machine, us, LocalDateTime.now(), "profile info changed");
 		*/
-
-		Machine machine = new Machine ("192.168.20.60", true, OperatingSystem.Windows);
+		/*
+		Machine machine = new Machine ("192.168.20.60", false, OperatingSystem.Windows);
+		Machine malMachine = new Machine ("192.168.20.80", true, OperatingSystem.Windows);
 		//User us = new User(10, "username"+10, "password", Risk.Low, LocalDateTime.now());
 		//Log log1 = new Log(1, LogType.Login, LogStatus.Ok, machine, us, LocalDateTime.now(), "login success!");
 		
+		User us = new User(1L, "username1", "password1", Risk.High, LocalDateTime.now(), true);
+		User us2 = new User(2L, "username2", "password2", Risk.Low, LocalDateTime.now(), false);
+		User us3 = new User(3L, "username3", "password3", Risk.Moderate, LocalDateTime.now(), true);
+		User us4 = new User(4L, "username4", "password4", Risk.Extreme, LocalDateTime.now(), false);
 		
-		Log log1 = new Log();
+		userRepository.save(us);
+		userRepository.save(us2);
+		userRepository.save(us3);
+		userRepository.save(us4);
+		
+		Alarm highAlarm = new Alarm(1L, AlarmType.Antivirus, us3, machine, LocalDateTime.now(), InformationSystem.SecuritySystem);
+		Alarm moderateAlarm = new Alarm(2L, AlarmType.Antivirus, us2, machine, LocalDateTime.now(), InformationSystem.SecuritySystem);
+		//Alarm extremeAlarm = new Alarm(3L, AlarmType.Antivirus, us, malMachine, LocalDateTime.now(), InformationSystem.SecuritySystem);
+		
+		Log log1 = new Log(1L, LogType.Login, LogStatus.Ok, malMachine, us, LocalDateTime.now(), "login", InformationSystem.PaymentSystem);
+		
+		kieSession.insert(us);
+		kieSession.insert(us2);
+		kieSession.insert(us3);
+		kieSession.insert(us4);
+		
+		kieSession.insert(highAlarm);
+		kieSession.insert(moderateAlarm);
+		*/
+	
+		Machine machine = new Machine ("192.168.20.60", false, OperatingSystem.Windows);
+		User us = userRepository.findByUsername("username4");
+		Log log1 = new Log(2L, LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now().minusHours(1).minusMinutes(1), "login failed", InformationSystem.PaymentSystem);
+		Log log2 = new Log(3L, LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now().minusHours(1).minusMinutes(1), "login failed", InformationSystem.PaymentSystem);
+		
+		Log log3 = new Log(1L, LogType.Login, LogStatus.Ok, machine, us, LocalDateTime.now().minusHours(1), "login success", InformationSystem.PaymentSystem);
+
+		Log log4 = new Log(4L, LogType.Information, LogStatus.Ok, machine, us, log3.getTime().plusSeconds(10), "profile info changed", InformationSystem.PaymentSystem);
+		
+		Alarm alarm = new Alarm(1L, AlarmType.Antivirus, us, machine, LocalDateTime.now().minusMonths(2), InformationSystem.PaymentSystem);
+		
+		
+		
+		
+		//Log log1 = new Log();
+
+		kieSession.insert(machine);
+		kieSession.insert(us);
+		kieSession.insert(alarm);
 		kieSession.insert(log1);
+		kieSession.insert(log2);
+		kieSession.insert(log3);
+		kieSession.insert(log4);
 		//kieSession.insert(log2);
 		kieSession.fireAllRules();
 		kieSession.dispose();
@@ -218,7 +267,7 @@ public class SiemCenterService {
 		userRepository.save(user);
 	}
 	
-	public void addIptoMalicious(Machine machine) {
+	public void addIpToMalicious(Machine machine) {
 		machine.setMaliciousIp(true);
 		machineRepository.save(machine);
 	}
