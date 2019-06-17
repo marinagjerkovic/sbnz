@@ -31,29 +31,25 @@ public class User implements Serializable{
 	@Column
 	private LocalDateTime  lastActivity;
 	
+	@Column
+	private Boolean isAdmin;
+	
 	public User() {
 		super();
 		this.id = -1L;
 	}
 
-	public User(String username, String password, Risk risk, LocalDateTime lastActivity) {
-		super();
-		this.username = username;
-		this.password = password;
-		this.risk = risk;
-		this.lastActivity = lastActivity;
-	}
-	
-	
 
-	public User(Long id, String username, String password, Risk risk, LocalDateTime lastActivity) {
+	public User(Long id, String username, String password, Risk risk, LocalDateTime lastActivity, Boolean isAdmin) {
 		super();
 		this.id = id;
 		this.username = username;
 		this.password = password;
 		this.risk = risk;
 		this.lastActivity = lastActivity;
+		this.isAdmin = isAdmin;
 	}
+
 
 	public String getUsername() {
 		return username;
@@ -96,12 +92,22 @@ public class User implements Serializable{
 	public void setId(Long id) {
 		this.id = id;
 	}
+	
+	public Boolean getIsAdmin() {
+		return isAdmin;
+	}
+
+	public void setIsAdmin(Boolean isAdmin) {
+		this.isAdmin = isAdmin;
+	}
 
 	@Override
 	public String toString() {
-		return "User [username=" + username + ", password=" + password + ", risk=" + risk + ", lastActivity="
-				+ lastActivity + "]";
+		return "User [id=" + id + ", username=" + username + ", password=" + password + ", risk=" + risk
+				+ ", lastActivity=" + lastActivity + ", isAdmin=" + isAdmin + "]";
 	}
+
+
 
 	
 }

@@ -12,7 +12,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import org.kie.api.definition.type.Role;
+
 @Entity
+@org.kie.api.definition.type.Role(Role.Type.EVENT)
 public class Log implements Serializable {
 
 	private static final long serialVersionUID = 1L;
