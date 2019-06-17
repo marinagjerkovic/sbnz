@@ -125,10 +125,11 @@ public class SiemCenterService {
 		*/
 
 		Machine machine = new Machine ("192.168.20.60", true, OperatingSystem.Windows);
-		User us = new User(10, "username"+10, "password", Risk.Low, LocalDateTime.now());
-		Log log1 = new Log(1, LogType.Login, LogStatus.Ok, machine, us, LocalDateTime.now(), "login success!");
+		//User us = new User(10, "username"+10, "password", Risk.Low, LocalDateTime.now());
+		//Log log1 = new Log(1, LogType.Login, LogStatus.Ok, machine, us, LocalDateTime.now(), "login success!");
 		
 		
+		Log log1 = new Log();
 		kieSession.insert(log1);
 		//kieSession.insert(log2);
 		kieSession.fireAllRules();
@@ -212,6 +213,14 @@ public class SiemCenterService {
 		
 	}
 	
+	public void setUserRisk(User user, Risk newRisk) {
+		user.setRisk(newRisk);
+		userRepository.save(user);
+	}
 	
+	public void addIptoMalicious(Machine machine) {
+		machine.setMaliciousIp(true);
+		machineRepository.save(machine);
+	}
 	
 }

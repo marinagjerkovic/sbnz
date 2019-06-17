@@ -33,6 +33,7 @@ public class User implements Serializable{
 	
 	public User() {
 		super();
+		this.id = -1L;
 	}
 
 	public User(String username, String password, Risk risk, LocalDateTime lastActivity) {

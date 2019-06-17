@@ -1,0 +1,130 @@
+package sbnz.integracija;
+
+/*second high
+//low risk
+rule "Detecting low risk users"
+	when
+		$user: User( !risk.equals(Risk.Low))
+		not ( 
+			Alarm(
+				user.getId()== $user.getId(), 
+				time.isAfter(LocalDateTime.now().minusDays(90))
+			) 
+		)
+	then
+			setUserRisk($user, RiskType.Low);
+end
+
+//moderate risk
+rule "Detecting moderate risk users - antivirus"
+	when 
+		$user: User(!risk.equals(Risk.Moderate))
+		exists (
+			Alarm (
+				user.getId()== $user.getId(), 
+				alarmType.equals(AlarmType.Antivirus),
+				time.isAfter(LocalDateTime.now().minusMonths(6))
+			)
+		)
+	then
+		setUserRisk($user, RiskType.Moderate);	
+end
+
+rule "Detecting moderate risk users - login errors"
+	when 
+		$user: User(!risk.equals(Risk.Moderate))
+		List (size> 15) from collect (
+			Log (
+				type.equals(LogType.Login),
+				status.equals(LogStatus.Error),
+				time.isAfter(LocalDateTime.now().minusDays(90))
+			)
+		)
+	then
+		setUserRisk($user, RiskType.Moderate);	
+end
+
+//high risk
+rule "Detecting high risk users - any alarm"
+	when
+		$user: User( 
+			!risk.equals(Risk.High),
+			isAdmin
+		)
+		exists (
+			Alarm (user.getId() == $user.getId())
+		)
+	then
+		setUserRisk($user, RiskType.High);
+end
+
+rule "Detecting high risk users - login"
+	when 
+		$user: User(
+			!risk.equals(Risk.High),
+			isAdmin
+		)
+		
+	then
+		setUserRisk($user, RiskType.High);
+end
+
+//extreme risk
+rule "Detecting extreme risk users - login and info changed"
+	when
+		$user: User(!risk.equals(Risk.Extreme))
+		exists (
+			Alarm (
+				alarmType.equals(AlarmType.Antivirus), 
+				user.getId() == $user.getId(),
+				time.isAfter(LocalDateTime.now().minusMonths(6))
+			)
+		)
+		$loginLog: Log(
+			type.equals(LogType.Login), 
+			status.equals(LogStatus.Ok), 
+			user.getId() == $user.getId())
+		)
+		$infoChangedLog: Log(
+			type.equals(LogType.Information), 
+			status.equals(LogStatus.Ok), 
+			text.contains("profile info changed"),
+			user.getId() == $loginLog.getUser().getId(),
+			time.isAfter($loginLog.getTime())
+		)
+		$count: Number (intValue >=2 ) from accumulate(
+			Log( 
+				type.equals(LogType.Login),
+				status.equals(LogStatus.Error),
+				time.isAfter(LocalDateTime.now().minusSeconds(90)),
+				user.getId() == $user.getId()
+			),
+			init(List<Integer> userIds = new ArrayList<Integer>();),
+			action(
+				if (!userIds.contains($user.getId())){
+					userIds.add($user.getId();
+				}		
+			),
+			reverse(
+				if (userIds.contains($user.getId())){
+					userIds.remove($user.getId());
+				}
+			),
+			result(userIds.size())
+		)
+	then
+		setUserRisk($user, Risk.Exteme);
+end
+
+rule "Detecting extreme risk users - malicious ips"
+	when
+		$user: User(!risk.equals(Risk.Extreme))
+		Log (
+			type.equals(LogType.Login),
+			machine.getIp().isMalicious(), 
+			user.getId() == $user.getId()
+		)
+	then
+		setUserRisk($user, Risk.Exteme);
+end
+*/
