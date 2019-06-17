@@ -22,7 +22,7 @@ public class Machine implements Serializable{
 	private String ip;
 	
 	@Column
-	private boolean maliciousIp;
+	private Boolean maliciousIp;
 	
 	@Column
 	private OperatingSystem os;
@@ -31,16 +31,15 @@ public class Machine implements Serializable{
 		super();
 	}
 
-	public Machine(String ip, boolean maliciousIp, OperatingSystem os) {
+	public Machine(String ip, Boolean maliciousIp, OperatingSystem os) {
 		super();
 		this.ip = ip;
 		this.maliciousIp = maliciousIp;
 		this.os = os;
 	}
 	
-	
 
-	public Machine(Long id, String ip, boolean maliciousIp, OperatingSystem os) {
+	public Machine(Long id, String ip, Boolean maliciousIp, OperatingSystem os) {
 		super();
 		this.id = id;
 		this.ip = ip;
@@ -64,11 +63,11 @@ public class Machine implements Serializable{
 		this.os = os;
 	}
 
-	public boolean isMaliciousIp() {
+	public Boolean getMaliciousIp() {
 		return maliciousIp;
 	}
 
-	public void setMaliciousIp(boolean maliciousIp) {
+	public void setMaliciousIp(Boolean maliciousIp) {
 		this.maliciousIp = maliciousIp;
 	}
 	

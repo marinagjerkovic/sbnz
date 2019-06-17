@@ -1,0 +1,24 @@
+package sbnz.integracija
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import sbnz.integracija.siem_center.facts.Log;
+import sbnz.integracija.siem_center.facts.Alarm;
+import sbnz.integracija.siem_center.facts.Machine;
+import sbnz.integracija.siem_center.facts.Risk;
+import sbnz.integracija.siem_center.facts.AlarmType;
+import sbnz.integracija.siem_center.facts.LogStatus;
+import sbnz.integracija.siem_center.facts.LogType;
+import sbnz.integracija.siem_center.facts.User;
+import sbnz.integracija.siem_center.facts.InformationSystem;
+
+
+
+rule "first rule"
+	when
+		Log ()
+	then
+	System.out.println();
+end

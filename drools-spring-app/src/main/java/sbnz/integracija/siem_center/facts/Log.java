@@ -52,6 +52,20 @@ public class Log implements Serializable {
 	
 	
 
+	public Log(LogType type, LogStatus status, Machine machine, User user, LocalDateTime time, String text,
+			InformationSystem informationSystem) {
+		super();
+		this.type = type;
+		this.status = status;
+		this.machine = machine;
+		this.user = user;
+		this.time = time;
+		this.text = text;
+		this.informationSystem = informationSystem;
+	}
+
+
+
 	public Log(Long id, LogType type, LogStatus status, Machine machine, User user, LocalDateTime time, String text,
 			InformationSystem informationSystem) {
 		super();
