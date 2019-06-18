@@ -1,10 +1,69 @@
 package sbnz.integracija
 
-
 import sbnz.integracija.siem_center.facts.Log;
-rule " attack"
+import sbnz.integracija.siem_center.facts.InformationSystem;
+import sbnz.integracija.siem_center.facts.AlarmType;
+import sbnz.integracija.siem_center.facts.LogType;
+
+global SiemCenterService service;
+
+declare LogAttack 
+	dos: int
+	pay: int
+	login: int
+	numOfLogs : int
+end
+/*
+rule "Detect 50+ logs within 60 seconds"
 	when
-		Log (type.equals(LogType.Login))
+		$la: LogAttack(numOfLogs>=50) from accumulate(
+			$log: Log() 
+			over window:time(60s),
+			init(
+				LogAttack la = new LogAttack(0, 0, 0, 0);
+			),
+			action(
+				la.setNumOfLogs(la.getNumOfLogs()+1);
+				if ($log.type.equals(LogType.Login)){
+					la.setLogin(la.getLogin()+5);
+				}else if($log.informationSystem.equals(InformationSystem.PaymentSystem)){
+					la.setPay(la.getPay()+3);
+				}else{
+					la.setDos(la.getDos()+1);
+				}
+			),
+			result(la)
+		)
 	then
-		System.out.println("");
-end	
+		insert(la);
+end
+*/
+rule "Dos attack"
+	when
+		$la: LogAttack( dos>pay && dos>login)
+	then
+		System.out.println("ALARM: DOS attack!");
+		Alarm alarm = new Alarm (AlarmType.DOS, new User(), new Machine(), LocalDateTime.now(), InformationSystem.All);
+		service.saveAlarm(alarm);
+		insert(alarm);
+end
+
+rule "Payment attack"
+	when
+		$la: LogAttack( pay>=dos && pay>login)
+	then
+		System.out.println("ALARM: Payment system attack!");
+		Alarm alarm = new Alarm (AlarmType.PaymentSystem, new User(), new Machine(), LocalDateTime.now(), InformationSystem.PaymentSystem);
+		service.saveAlarm(alarm);
+		insert(alarm);
+end
+
+rule "Brute force attack"
+	when
+		$la: LogAttack( login>=dos && login>=pay)
+	then
+		System.out.println("ALARM: Brute force attack!");
+		Alarm alarm = new Alarm (AlarmType.BruteForce, new User(), new Machine(), LocalDateTime.now(), InformationSystem.All);
+		service.saveAlarm(alarm);
+		insert(alarm);
+end
