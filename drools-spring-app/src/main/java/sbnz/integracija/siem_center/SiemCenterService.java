@@ -212,7 +212,7 @@ public class SiemCenterService {
 		this.kieSession.insert(machine);
 		
 		//virus found log
-		User user = userRepository.findByUsername("username8");
+		User user = userRepository.findByUsername("username1");
 		this.kieSession.insert(user);
 		Log log1 = new Log (LogType.VirusThreat, LogStatus.Warning, machine, user, LocalDateTime.now().minusHours(1), "virus detected", InformationSystem.PaymentSystem);
 		log1 = logRepository.save(log1);
@@ -311,7 +311,7 @@ public class SiemCenterService {
 	
 	public void simulateUserRiskToLow() {
 		//enter username of other users
-		User user = userRepository.findByUsername("username1");
+		User user = userRepository.findByUsername("username2");
 		this.kieSession.insert(user);
 	}
 		
@@ -365,7 +365,7 @@ public class SiemCenterService {
 		for (Log l:logs){
 			LogDTO logDTO = new LogDTO();
 			logDTO.setId(l.getId());
-			logDTO.setMachineId(l.getMachine().getId());
+			logDTO.setMachineIp(l.getMachine().getIp());
 			logDTO.setStatus(l.getStatus());
 			logDTO.setText(l.getText());
 			logDTO.setTime(l.getTime());
@@ -380,12 +380,12 @@ public class SiemCenterService {
 	
 	public List<LogDTO> getAllLogsInRuleEngine(){
 		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
-		QueryResults results = kieSession.getQueryResults( "getObjectsOfLog" ); 
+		QueryResults results = kieSession.getQueryResults( "getAllLogs" ); 
 		for ( QueryResultsRow row : results ) {
 		    Log log = (Log) row.get( "$log" ); //you can retrieve all the bounded variables here
 		    LogDTO logDTO = new LogDTO();
 		    logDTO.setId(log.getId());
-		    logDTO.setMachineId(log.getMachine().getId());
+		    logDTO.setMachineIp(log.getMachine().getIp());
 		    logDTO.setStatus(log.getStatus());
 		    logDTO.setText(log.getText());
 		    logDTO.setTime(log.getTime());
@@ -413,7 +413,7 @@ public class SiemCenterService {
 		}
 		return alarmsDTO;
 	}
-	
+	/*
 	public boolean createLog(LogDTO logDTO){
 		Log log = new Log();
 		Machine machine = machineRepository.getOne(logDTO.getMachineId());
@@ -433,7 +433,7 @@ public class SiemCenterService {
 		logRepository.save(log);
 		return true;
 		
-	}
+	}*/
 	
 	public Object generateUsersWithOver6Alarms() {
 		return this.kieSession.getGlobal("usersAnyAlarms");
@@ -457,7 +457,6 @@ public class SiemCenterService {
 	
 	public void saveAlarm(Alarm alarm) {
 		alarmRepository.save(alarm);
-	
 	}
 	
   public boolean threatTemplate(String noOfThreats, String periodOfTime) {
@@ -525,6 +524,7 @@ public class SiemCenterService {
 		InformationSystem informationSystem = searchLog.getInformationSystem();
 		LocalDateTime time = searchLog.getTime();
 		
+		System.out.println(logs.size());
 		for (Log l:logs){			
 			if (type==null){
 				type=l.getType();
@@ -563,48 +563,13 @@ public class SiemCenterService {
 	
 	public List<LogDTO> searchLogsWorkingMemory(LogDTO searchLog) {
 		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
-		
-		QueryResults results = kieSession.getQueryResults( "getObjectsOfLog" );
-		
-		LogType type = searchLog.getType();
-		LogStatus status = searchLog.getStatus();
-		String machineIp = searchLog.getMachineIp();
-		String username = searchLog.getUserUsername();
-		InformationSystem informationSystem = searchLog.getInformationSystem();
-		LocalDateTime time = searchLog.getTime();
+		QueryResults results = kieSession.getQueryResults( "searchLogs", searchLog);
+
 		
 		for ( QueryResultsRow row : results ) {
-		    Log l = (Log) row.get( "$result" ); //you can retrieve all the bounded variables here
-		    
-		    if (type==null){
-				type=l.getType();
-			}
-			if (status==null){
-				status=l.getStatus();
-			}
-			if (machineIp==null){
-				machineIp=l.getMachine().getIp();
-			}
-			if (username==null){
-				username=l.getUser().getUsername();
-			}
-			if (informationSystem==null){
-				informationSystem=l.getInformationSystem();
-			}
-			LogDTO logDTO = new LogDTO();
-			if (l.getInformationSystem().equals(informationSystem) && l.getMachine().getIp().equals(machineIp) && l.getStatus().equals(status) && l.getTime().equals(time) && l.getType().equals(type) && l.getUser().getUsername().equals(username)){
-				logDTO.setId(l.getId());
-				logDTO.setInformationSystem(l.getInformationSystem());
-				logDTO.setMachineIp(l.getMachine().getIp());
-				logDTO.setStatus(l.getStatus());
-				logDTO.setText(l.getText());
-				logDTO.setTime(l.getTime());
-				logDTO.setType(l.getType());
-				logDTO.setUserUsername(l.getUser().getUsername());
-				logsDTO.add(logDTO);
-			}
-			
-		    
+		    Log l = (Log) row.get( "$log" ); 
+		    LogDTO logdto = new LogDTO(l);
+		    logsDTO.add(logdto);
 		}
 		return logsDTO;
 		
@@ -621,14 +586,12 @@ public class SiemCenterService {
 	public List<LogDTO> searchLogsWorkingMemoryRegex(String regexString) {
 		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
 		
-		QueryResults results = kieSession.getQueryResults( "getObjectsOfLog" );
+		QueryResults results = kieSession.getQueryResults( "getLogsRegex", regexString);
 		
 		for ( QueryResultsRow row : results ) {
-		    Log l = (Log) row.get( "$result" ); //you can retrieve all the bounded variables here
-		    
-		    //proveri za l da li odgovara regexu, ako da dodaj u listu nov dto
-			
-		    
+		    Log l = (Log) row.get( "$log" ); 
+		    LogDTO logdto = new LogDTO(l);
+		    logsDTO.add(logdto);
 		}
 		return logsDTO;
 	}
