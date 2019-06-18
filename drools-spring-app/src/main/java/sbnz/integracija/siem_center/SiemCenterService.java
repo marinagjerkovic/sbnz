@@ -1,14 +1,27 @@
 package sbnz.integracija.siem_center;
 
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.drools.core.impl.InternalKnowledgeBase;
+import org.drools.core.impl.KnowledgeBaseFactory;
+import org.drools.template.DataProvider;
+import org.drools.template.DataProviderCompiler;
+import org.drools.template.objects.ArrayDataProvider;
+import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.QueryResults;
 import org.kie.api.runtime.rule.QueryResultsRow;
+import org.kie.internal.builder.KnowledgeBuilder;
+import org.kie.internal.builder.KnowledgeBuilderError;
+import org.kie.internal.builder.KnowledgeBuilderErrors;
+import org.kie.internal.builder.KnowledgeBuilderFactory;
+import org.kie.internal.io.ResourceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -445,6 +458,59 @@ public class SiemCenterService {
 	
 	public void saveAlarm(Alarm alarm) {
 		alarmRepository.save(alarm);
+  }
+  public boolean threatTemplate(String noOfThreats, String periodOfTime) {
+		
+		InputStream template = SiemCenterService.class.getResourceAsStream("/sbnz/templates/rule_templates.drt");
+		
+		DataProvider dataProvider = new ArrayDataProvider(new String[][] {
+			new String[] {noOfThreats, periodOfTime},
+		});		
+		
+		insertRule(dataProvider, template);
+		return true;
+	}
+	
+	
+	public boolean logTemplate(String type, String status, String ip, String username, String informationSystem, String numberOfLogs, String numberOfDays, String alarmType){
+		InputStream template = SiemCenterService.class.getResourceAsStream("/sbnz/templates/log_rule_templates.drt");
+		DataProvider dataProvider = new ArrayDataProvider(new String[][] {
+			new String[] {numberOfLogs, numberOfDays, alarmType, username, ip, type, status, informationSystem},
+		});		
+		
+		insertRule(dataProvider, template);
+		return true;
+	}
+
+	
+	
+	public void insertRule(DataProvider dataProvider, InputStream template){
+		DataProviderCompiler converter = new DataProviderCompiler();
+		String ruleContent = converter.compile(dataProvider, template);
+		
+		System.out.println(ruleContent);
+		
+		kieSession = null;
+	    try {
+	        KnowledgeBuilder kb = KnowledgeBuilderFactory.newKnowledgeBuilder();
+	        kb.add(ResourceFactory.newByteArrayResource(ruleContent.getBytes("utf-8")), ResourceType.DRL);
+
+	        KnowledgeBuilderErrors errors = kb.getErrors();
+	        for (KnowledgeBuilderError error : errors) {
+	            System.out.println(error);
+	        }
+	        InternalKnowledgeBase kBase = KnowledgeBaseFactory.newKnowledgeBase();
+	        kBase.addPackages(kb.getKnowledgePackages());
+	        kieSession = kBase.newKieSession();
+	        //pozivanje testa
+	        
+
+	    } catch (UnsupportedEncodingException e) {
+	        e.printStackTrace();
+	    } finally {
+	        if (kieSession != null)
+	            kieSession.dispose();
+	    }
 	}
 	
 }
