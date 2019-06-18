@@ -7,9 +7,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import sbnz.integracija.siem_center.facts.Log;
@@ -134,5 +136,26 @@ public class SIemCenterController {
 		return new ResponseEntity<List<LogDTO>>(logsDTO, HttpStatus.OK);
 	}*/
 	
+	@RequestMapping(path= "/threatTemplate/{noOfThreats}/{periodOfTime}" ,method=RequestMethod.POST)
+	public ResponseEntity<String> threatTemplate(@PathVariable String noOfThreats, @PathVariable String periodOfTime){
+		boolean ruleInserted = siemCenterService.threatTemplate(noOfThreats, periodOfTime);
+		if (ruleInserted){
+			return new ResponseEntity<String>(HttpStatus.OK);
+		}else{
+			return new ResponseEntity<String>(HttpStatus.EXPECTATION_FAILED);
+		}
+		
+	}
+	
+	@RequestMapping(path= "/logTemplate/{type}/{status}/{ip}/{username}/{informationSystem}/{numberOfLogs}/{numberOfDays}/{alarmType}){" ,method=RequestMethod.POST)
+	public ResponseEntity<String> logTemplate(@PathVariable String type, @PathVariable String status, @PathVariable String ip, @PathVariable String username, @PathVariable String informationSystem, @PathVariable String numberOfLogs, @PathVariable String numberOfDays, @PathVariable String alarmType){
+		boolean ruleInserted = siemCenterService.logTemplate(type, status, ip, username, informationSystem, numberOfLogs, numberOfDays, alarmType);
+		if (ruleInserted){
+			return new ResponseEntity<String>(HttpStatus.OK);
+		}else{
+			return new ResponseEntity<String>(HttpStatus.EXPECTATION_FAILED);
+		}
+		
+	}
 	
 }

@@ -1,0 +1,48 @@
+template header
+thisManyLogs
+thisManyDays
+typeOfAlarm
+userOfLogs
+ipAddressOfLogs
+typeOfLogs
+statusOfLogs
+informationSystemOfLogs
+
+
+package sbnz.templates;
+
+import sbnz.integracija.siem_center.facts.Log;
+import sbnz.integracija.siem_center.facts.LogType;
+import sbnz.integracija.siem_center.facts.Machine;
+import sbnz.integracija.siem_center.facts.Alarm;
+import sbnz.integracija.siem_center.facts.User;
+import sbnz.integracija.siem_center.facts.LogStatus;
+import sbnz.integracija.siem_center.facts.InformationSystem;
+import sbnz.integracija.siem_center.facts.AlarmType;
+import java.time.LocalDateTime;
+
+template "Dynamic_rules_logs"
+
+
+rule "@{thisManyLogs} logs with set attributes in last @{thisManyDays} seconds triggers @{typeOfAlarm}_@{row.rowNumber}"
+	when
+		$list: List( size >=@{thisManyLogs} ) from collect(
+			$user: User(username.equals(@{userOfLogs})),
+			$machine: Machine(ip.equals(@{ipAddressOfLogs})),
+			Log (
+				type.equals(LogType.@{typeOfLogs}),
+				status.equals(LogStatus.@{statusOfLogs}),
+				informationSystem.equals(InformationSystem.@{informationSystemOfLogs}),
+				$is:informationSystem,
+				time.isAfter(LocalDateTime.now().minusDays(@{thisManyDays})),
+				user.getUsername().equals($user.getUsername()),
+				machine.getIp().equals($machine.getIp())
+			)
+		)
+    then
+		System.out.println("ALARM: " +$list.size()+" @{typeOfLogs} @{statusOfLogs}s from @{ipAddressOfLogs} IP address in the last @{thisManyDays} days!");
+		insert(new Alarm(AlarmType.@{typeOfAlarm}, $user, $machine, LocalDateTime.now(), $is));
+end
+
+end template
+
