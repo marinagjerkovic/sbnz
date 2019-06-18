@@ -3,7 +3,6 @@ package sbnz.integracija.siem_center;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +50,7 @@ public class SiemCenterService {
 	private static Logger log = LoggerFactory.getLogger(SiemCenterService.class);
 
 	private final KieContainer kieContainer;
-	private final KieSession kieSession;
+	private KieSession kieSession;
 	
 	@Autowired
 	AlarmRepository alarmRepository;
@@ -378,12 +377,12 @@ public class SiemCenterService {
 		}
 		return logsDTO;
 	}
-	/*
+	
 	public List<LogDTO> getAllLogsInRuleEngine(){
 		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
 		QueryResults results = kieSession.getQueryResults( "getObjectsOfLog" ); 
 		for ( QueryResultsRow row : results ) {
-		    Log log = (Log) row.get( "$result" ); //you can retrieve all the bounded variables here
+		    Log log = (Log) row.get( "$log" ); //you can retrieve all the bounded variables here
 		    LogDTO logDTO = new LogDTO();
 		    logDTO.setId(log.getId());
 		    logDTO.setMachineId(log.getMachine().getId());
@@ -395,7 +394,7 @@ public class SiemCenterService {
 		    logsDTO.add(logDTO);
 		}
 		return logsDTO;
-	}*/
+	}
 	
 	public List<AlarmDTO> getAllAlarms(){
 		List<AlarmDTO> alarmsDTO = new ArrayList<AlarmDTO>();
@@ -458,7 +457,9 @@ public class SiemCenterService {
 	
 	public void saveAlarm(Alarm alarm) {
 		alarmRepository.save(alarm);
-  }
+	
+	}
+	
   public boolean threatTemplate(String noOfThreats, String periodOfTime) {
 		
 		InputStream template = SiemCenterService.class.getResourceAsStream("/sbnz/templates/rule_templates.drt");
@@ -490,7 +491,7 @@ public class SiemCenterService {
 		
 		System.out.println(ruleContent);
 		
-		kieSession = null;
+		this.kieSession = null;
 	    try {
 	        KnowledgeBuilder kb = KnowledgeBuilderFactory.newKnowledgeBuilder();
 	        kb.add(ResourceFactory.newByteArrayResource(ruleContent.getBytes("utf-8")), ResourceType.DRL);

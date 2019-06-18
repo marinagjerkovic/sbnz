@@ -16,6 +16,10 @@ import sbnz.integracija.siem_center.facts.InformationSystem;
 
 global SiemCenterService service;
 
+query "getObjectsOfLog"
+	$log: Log()
+end
+
 rule "Login error on same machine"
 	enabled false
 	when

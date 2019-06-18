@@ -178,12 +178,12 @@ public class SIemCenterController {
 		List<LogDTO> logsDTO = siemCenterService.getAllLogs();
 		return new ResponseEntity<List<LogDTO>>(logsDTO, HttpStatus.OK);
 	}
-	/*
+	
 	@RequestMapping(path= "/getLogsInRuleEngine" ,method=RequestMethod.GET)
 	public ResponseEntity<List<LogDTO>> getLogsInRuleEngine(){
 		List<LogDTO> logsDTO = siemCenterService.getAllLogsInRuleEngine();
 		return new ResponseEntity<List<LogDTO>>(logsDTO, HttpStatus.OK);
-	}*/
+	}
 	
 	@RequestMapping(path= "/threatTemplate/{noOfThreats}/{periodOfTime}" ,method=RequestMethod.POST)
 	public ResponseEntity<String> threatTemplate(@PathVariable String noOfThreats, @PathVariable String periodOfTime){
