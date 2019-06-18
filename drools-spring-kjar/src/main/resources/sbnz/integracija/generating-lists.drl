@@ -14,11 +14,64 @@ import sbnz.integracija.siem_center.facts.LogType;
 import sbnz.integracija.siem_center.facts.User;
 import sbnz.integracija.siem_center.facts.InformationSystem;
 
+global List<User> usersAnyAlarms;
+global List<User> usersAntivirusAlarms;
+global List<InformationSystem> infSys;
 
-
-rule "first rule"
+rule "Activate more than 6 alarms in the last 6 months on at least 3 different parts of inf sys"
 	when
-		Log ()
+		$user: User(
+			$id : id
+		)
+		Number( intValue == 1) from accumulate(
+			$alarm: Alarm(
+				user.getId() == $id,
+				time.isAfter(LocalDateTime.now().minusMonths(6))
+			),
+			init(
+				List<Long> alarmIds = new ArrayList<Long>();
+				List<InformationSystem> infSys = new ArrayList<InformationSystem>();
+				int retValue = 0;
+			),
+			action(
+				alarmIds.add($alarm.getId());
+				if (!infSys.contains($alarm.getInformationSystem())){
+					infSys.add($alarm.getInformationSystem());
+				}
+				if (alarmIds.size()>=6 && infSys.size()>=3){
+					retValue =1;
+				}
+			),
+			result(retValue)
+		)
 	then
-	System.out.println();
+		usersAnyAlarms.add($user);
+end
+
+rule "users that invoked 10 alarms in the period of 10 days"
+	when
+		$user: User(
+			$id :id
+		)
+		List(size>=10) from collect (
+			Alarm(
+				alarmType.equals(AlarmType.Antivirus)
+			)
+			over window:time(10d)
+		)
+	then
+		usersAntivirusAlarms.add($user);
+end
+
+rule "inf sys with more than 5 alarms generated from high and extreme risk users"
+	when
+		$inf: InformationSystem()
+		List(size>=5) from collect (
+			Alarm(
+				informationSystem.equals($inf),
+				user.getRisk().equals(Risk.High) || user.getRisk().equals(Risk.Extreme)
+			)
+		)
+	then
+		infSys.add($inf);
 end

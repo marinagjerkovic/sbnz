@@ -37,7 +37,7 @@ end
 //moderate risk
 rule "Detecting moderate risk users - antivirus"
 	when 
-		$user: User(!risk.equals(Risk.Moderate) && !risk.equals(Risk.Extreme))
+		$user: User(risk.equals(Risk.Low))
 		exists (
 			Alarm (
 				user.getId()== $user.getId(), 
@@ -53,7 +53,7 @@ end
 
 rule "Detecting moderate risk users - login errors"
 	when 
-		$user: User(!risk.equals(Risk.Moderate) && !risk.equals(Risk.Extreme))
+		$user: User(risk.equals(Risk.Low))
 		List (size> 15) from collect (
 			Log (
 				type.equals(LogType.Login),
