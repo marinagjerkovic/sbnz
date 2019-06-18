@@ -84,6 +84,14 @@ public class SIemCenterController {
 		return null;
 	}
 	
+	@RequestMapping(value="/simulateVirusThreatEliminatedWithinHour", method=RequestMethod.GET)
+	public Log simulateVirusThreatEliminatedWithinHour(){
+		log.debug("Simulating log");
+
+		siemCenterService.simulateVirusThreatEliminatedWithinHour();
+		return null;
+	}
+	
 	@RequestMapping(value="/simulateUserInfoChangeAfter5LoginErrors", method=RequestMethod.GET)
 	public Log simulateUserInfoChangeAfter5LoginErrors (){
 		log.debug("Simulating log");
@@ -107,6 +115,47 @@ public class SIemCenterController {
 		siemCenterService.simulateLoginFromMaliciousIp();
 		return null;
 	}
+	
+	@RequestMapping(value="/simulateDosAttack", method=RequestMethod.GET)
+	public Log simulateDosAttack (){
+		log.debug("Simulating log");
+
+		siemCenterService.simulateDosAttack();
+		return null;
+	}
+	
+	@RequestMapping(value="/simulateUser6Alarms6Months3Parts", method=RequestMethod.GET)
+	public Log simulateUser6Alarms6Months3Parts (){
+		log.debug("Simulating log");
+
+		siemCenterService.simulateUser6Alarms6Months3Parts();
+		return null;
+	}
+	
+	@RequestMapping(value="/generateUsersWithOver6Alarms", method=RequestMethod.GET)
+	public Object generateUsersWithOver6Alarms (){
+		log.debug("Simulating log");
+
+		Object list = siemCenterService.generateUsersWithOver6Alarms();
+		return list;
+	}
+	
+	@RequestMapping(value="/generateUsersWithOver10AntivirusAlarms", method=RequestMethod.GET)
+	public Object generateUsersWithOver10AntivirusAlarms (){
+		log.debug("Simulating log");
+
+		Object list = siemCenterService.generateUsersWithOver10AntivirusAlarms();
+		return list;
+	}
+	
+	@RequestMapping(value="/generateInfSys", method=RequestMethod.GET)
+	public Object generateInfSys (){
+		log.debug("Simulating log");
+
+		Object list = siemCenterService.generateInfSys();
+		return list;
+	}
+	
 	
 	
 	@RequestMapping(path="/createLog", method = RequestMethod.POST, consumes="application/json")

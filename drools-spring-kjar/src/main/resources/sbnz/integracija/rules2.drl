@@ -14,8 +14,6 @@ import sbnz.integracija.siem_center.facts.LogType;
 import sbnz.integracija.siem_center.facts.User;
 import sbnz.integracija.siem_center.facts.InformationSystem;
 
-import sbnz.integracija.siem_center.facts.OperatingSystem;
-
 global SiemCenterService service;
 
 rule "Login error on same machine"
@@ -31,7 +29,9 @@ rule "Login error on same machine"
 		)
 	then
 		System.out.println("ALARM: Login error on same machine!");
-		insert(new Alarm(AlarmType.Login, new User(), $machine, LocalDateTime.now(), null));
+		Alarm alarm = new Alarm(AlarmType.Login, new User(), $machine, LocalDateTime.now(), null);
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 
 rule "Login error with same username"
@@ -47,7 +47,9 @@ rule "Login error with same username"
 		)
 	then 
 		System.out.println("ALARM: Login error with same username!");
-		insert(new Alarm(AlarmType.Login, $user, null, LocalDateTime.now(), null));
+		Alarm alarm = new Alarm(AlarmType.Login, $user, null, LocalDateTime.now(), null);
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 
 rule "Error log"
@@ -56,7 +58,9 @@ rule "Error log"
 		$l: Log(status.equals(LogStatus.Error))
 	then
 		System.out.println("ALARM: Error log!");
-		insert(new Alarm(AlarmType.Error, $l.getUser(), $l.getMachine(), $l.getTime(), $l.getInformationSystem()));
+		Alarm alarm = new Alarm(AlarmType.Error, $l.getUser(), $l.getMachine(), $l.getTime(), $l.getInformationSystem());
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 
 rule "90 days inactive login attempt"
@@ -67,7 +71,9 @@ rule "90 days inactive login attempt"
 		)
 	then
 		System.out.println("ALARM: 90 days inactive user login attempt!");
-		insert(new Alarm(AlarmType.Login, $log.getUser(), $log.getMachine(), $log.getTime(), $log.getInformationSystem()));
+		Alarm alarm = new Alarm(AlarmType.Login, $log.getUser(), $log.getMachine(), $log.getTime(), $log.getInformationSystem());
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 
 rule "15 login errors from same IP address in the last 5 days"
@@ -83,7 +89,9 @@ rule "15 login errors from same IP address in the last 5 days"
 		)
     then
 		System.out.println("ALARM: " +$list.size()+" login errors from same IP address in the last 5 days!");
-		insert(new Alarm(AlarmType.Login, new User(), $machine, LocalDateTime.now(), null));
+		Alarm alarm = new Alarm(AlarmType.Login, new User(), $machine, LocalDateTime.now(), null);
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 
 rule "User logged in from two different IP addresses in less then 10 seconds"
@@ -108,7 +116,9 @@ rule "User logged in from two different IP addresses in less then 10 seconds"
 		)
 	then
 		System.out.println("ALARM: User logged in from two different IP addresses in less then 10 seconds!");
-		insert(new Alarm(AlarmType.Login, $user, null, LocalDateTime.now(), null));
+		Alarm alarm = new Alarm(AlarmType.Login, $user, null, LocalDateTime.now(), null);
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 
 rule "Antivirus threat not eliminated within hour"
@@ -129,7 +139,9 @@ rule "Antivirus threat not eliminated within hour"
 		)
 	then
 		System.out.println("ALARM: Antivirus threat not eliminated within hour on machine: " + $machine.getIp());
-		insert(new Alarm(AlarmType.Antivirus, new User(), $machine, LocalDateTime.now(), $log.getInformationSystem()));
+		Alarm alarm = new Alarm(AlarmType.Antivirus, $log.getUser(), $machine, LocalDateTime.now(), $log.getInformationSystem());
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 
 rule "User data changed from ip that had multiple login attempts in the last 90 seconds"
@@ -171,7 +183,9 @@ rule "User data changed from ip that had multiple login attempts in the last 90 
 		)
 	then
 		System.out.println("ALARM: User data changed from ip that had "+ $count +" login attempts in the last 90 seconds");
-		insert(new Alarm(AlarmType.UserInfoEndangered, $loginLog.getUser(), $machine, LocalDateTime.now(), $loginLog.getInformationSystem()));
+		Alarm alarm = new Alarm(AlarmType.UserInfoEndangered, $loginLog.getUser(), $machine, LocalDateTime.now(), $loginLog.getInformationSystem());
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 
 rule "Seven or more threats from the same machine"
@@ -186,7 +200,9 @@ rule "Seven or more threats from the same machine"
 		)
 	then
 		System.out.println("ALARM: "+$list.size()+" threats from ip address: "+$machine.getIp()+"!");
-		insert(new Alarm(AlarmType.Antivirus, new User(), $machine, LocalDateTime.now(), null));
+		Alarm alarm = new Alarm(AlarmType.Antivirus, new User(), $machine, LocalDateTime.now(), null);
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 	
 rule "Malicious ip login attempt (or success)"
@@ -198,7 +214,9 @@ rule "Malicious ip login attempt (or success)"
 		)
 	then
 		System.out.println("ALARM: Malicious ip login attempt (or success): "+$log.getMachine().getIp()+"!");
-		insert(new Alarm(AlarmType.MaliciousIp, $log.getUser(), $log.getMachine(), LocalDateTime.now(), $log.getInformationSystem()));
+		Alarm alarm = new Alarm(AlarmType.MaliciousIp, $log.getUser(), $log.getMachine(), LocalDateTime.now(), $log.getInformationSystem());
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 
 rule "Log from malicious machine"
@@ -206,7 +224,9 @@ rule "Log from malicious machine"
 		$log: Log(machine.getMaliciousIp())
 	then
 		System.out.println("ALARM: Log from malicious ip: "+$log.getMachine().getIp()+"!");
-		insert(new Alarm(AlarmType.MaliciousIp, $log.getUser(), $log.getMachine(), LocalDateTime.now(), $log.getInformationSystem()));
+		Alarm alarm = new Alarm(AlarmType.MaliciousIp, $log.getUser(), $log.getMachine(), LocalDateTime.now(), $log.getInformationSystem());
+		service.saveAlarm(alarm);
+		insert(alarm);
 end
 
 rule "Add IP address to malicious ips"

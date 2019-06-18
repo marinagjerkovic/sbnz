@@ -51,7 +51,7 @@ public class SiemCenterService {
 	private static Logger log = LoggerFactory.getLogger(SiemCenterService.class);
 
 	private final KieContainer kieContainer;
-	private KieSession kieSession;
+	private final KieSession kieSession;
 	
 	@Autowired
 	AlarmRepository alarmRepository;
@@ -73,6 +73,11 @@ public class SiemCenterService {
 		this.kieContainer = kieContainer;
 		this.kieSession = kieContainer.newKieSession();
 		kieSession.setGlobal("service", this);
+		//for generating lists
+		kieSession.setGlobal("usersAnyAlarms", new ArrayList<User>());
+		kieSession.setGlobal("usersAntivirusAlarms", new ArrayList<User>());
+		kieSession.setGlobal("infSys", new ArrayList<InformationSystem>());
+		
 	}
 	
 	public void seed() {
@@ -202,19 +207,42 @@ public class SiemCenterService {
 		this.kieSession.fireAllRules();
 	}
 	
+	//also, user's risk will change to Moderate/High
 	public void simulateVirusThreatNotEliminatedWithinHour() {
 		Machine machine = machineRepository.getOne(1L);
 		this.kieSession.insert(machine);
 		
 		//virus found log
-		Log log1 = new Log (LogType.VirusThreat, LogStatus.Warning, machine, null, LocalDateTime.now().minusHours(1), "virus detected", InformationSystem.PaymentSystem);
+		User user = userRepository.findByUsername("username8");
+		this.kieSession.insert(user);
+		Log log1 = new Log (LogType.VirusThreat, LogStatus.Warning, machine, user, LocalDateTime.now().minusHours(1), "virus detected", InformationSystem.PaymentSystem);
 		log1 = logRepository.save(log1);
 		this.kieSession.insert(log1);
 		
 		//virus removed log
-		//Log log2 = new Log (LogType.ThreatEliminated, LogStatus.Ok, machine, null, LocalDateTime.now().minusMinutes(10), "virus removed; reporting log id: "+log1.getId(), InformationSystem.PaymentSystem);
+		//User user = userRepository.findByUsername("username1");
+		//Log log2 = new Log (LogType.ThreatEliminated, LogStatus.Ok, machine, user, LocalDateTime.now().minusMinutes(10), "virus removed; reporting log id: "+log1.getId(), InformationSystem.PaymentSystem);
 		//log2 = logRepository.save(log2);
 		//this.kieSession.insert(log2);
+		
+		this.kieSession.fireAllRules();
+	}
+	
+	public void simulateVirusThreatEliminatedWithinHour() {
+		Machine machine = machineRepository.getOne(1L);
+		this.kieSession.insert(machine);
+		
+		//virus found log
+		User user = userRepository.findByUsername("username8");
+		Log log1 = new Log (LogType.VirusThreat, LogStatus.Warning, machine, user, LocalDateTime.now().minusHours(1), "virus detected", InformationSystem.PaymentSystem);
+		log1 = logRepository.save(log1);
+		this.kieSession.insert(log1);
+		
+		//virus removed log
+		User user2 = userRepository.findByUsername("username1");
+		Log log2 = new Log (LogType.ThreatEliminated, LogStatus.Ok, machine, user2, LocalDateTime.now().minusMinutes(10), "virus removed; reporting log id: "+log1.getId(), InformationSystem.PaymentSystem);
+		log2 = logRepository.save(log2);
+		this.kieSession.insert(log2);
 		
 		this.kieSession.fireAllRules();
 	}
@@ -282,106 +310,67 @@ public class SiemCenterService {
 		this.kieSession.fireAllRules();
 	}
 	
-	//public Log simulate(){
-		//seed();
+	public void simulateUserRiskToLow() {
+		//enter username of other users
+		User user = userRepository.findByUsername("username1");
+		this.kieSession.insert(user);
+	}
 		
+	public void simulateUser6Alarms6Months3Parts() {
+		User user = userRepository.findByUsername("username1");
+		Machine machine = machineRepository.getOne(1L);
 		
-		//test za pojavu error log-a
-		/*
-		Log errorLog = new Log(LogType.Login, new Machine("192.168.20.60", false, OperatingSystem.Windows), new User("username1", Risk.Low,LocalDateTime.parse("2019-04-08T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME)),LocalDateTime.parse("2019-04-23T11:11:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME),"wrong password",LogStatus.Error);
-		kieSession.insert(errorLog);
-		kieSession.fireAllRules();
-		kieSession.dispose();
-		return errorLog;
-		*/
+		Alarm alarm1 = new Alarm(AlarmType.Antivirus, user, machine,LocalDateTime.now().minusMonths(1), InformationSystem.PaymentSystem);
+		Alarm alarm2 = new Alarm(AlarmType.Antivirus, user, machine,LocalDateTime.now().minusMonths(2), InformationSystem.PrivacySystem);
+		Alarm alarm3 = new Alarm(AlarmType.Antivirus, user, machine,LocalDateTime.now().minusMonths(3), InformationSystem.SecuritySystem);
+		Alarm alarm4 = new Alarm(AlarmType.Antivirus, user, machine,LocalDateTime.now().minusMonths(4), InformationSystem.PaymentSystem);
+		Alarm alarm5 = new Alarm(AlarmType.Antivirus, user, machine,LocalDateTime.now().minusMonths(5), InformationSystem.PaymentSystem);
+		Alarm alarm6 = new Alarm(AlarmType.Antivirus, user, machine,LocalDateTime.now().minusMonths(1), InformationSystem.PaymentSystem);
+		alarm1 = alarmRepository.save(alarm1);
+		alarm2 = alarmRepository.save(alarm2);
+		alarm3 = alarmRepository.save(alarm3);
+		alarm4 = alarmRepository.save(alarm4);
+		alarm5 = alarmRepository.save(alarm5);
+		alarm6 = alarmRepository.save(alarm6);
+		
+		this.kieSession.insert(user);
+		this.kieSession.insert(alarm1);
+		this.kieSession.insert(alarm2);
+		this.kieSession.insert(alarm3);
+		this.kieSession.insert(alarm4);
+		this.kieSession.insert(alarm5);
+		this.kieSession.insert(alarm6);
+
+		this.kieSession.fireAllRules();
+	}
 	
-		/*
-		//simulations
-		
-		//profile info changed after login fails
-		Machine machine = new Machine ("192.168.20.60", false, OperatingSystem.Windows);
-		kieSession.insert(machine);
-		for (int i =0;i<6;i++) {
-			User us = new User(i, "username"+i, "password", Risk.Low, LocalDateTime.now());
-			Log log = new Log(i, LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now(), "login error");
-			kieSession.insert(log);
+	public void simulateDosAttack() {
+		for (int i = 0;i<40;i++) {
+			Log log = new Log(LogType.Information, LogStatus.Ok, new Machine(), new User(), LocalDateTime.now(), "text", InformationSystem.PrivacySystem);
+			this.kieSession.insert(log);
 		}
-		User us = new User(10, "username"+10, "password", Risk.Low, LocalDateTime.now());
-		Log log1 = new Log(10, LogType.Login, LogStatus.Ok, machine, us, LocalDateTime.now(), "login success!");
-		Log log2 = new Log(11, LogType.Information, LogStatus.Ok, machine, us, LocalDateTime.now(), "profile info changed");
-		*/
-		/*
-		Machine machine = new Machine ("192.168.20.60", false, OperatingSystem.Windows);
-		Machine malMachine = new Machine ("192.168.20.80", true, OperatingSystem.Windows);
-		//User us = new User(10, "username"+10, "password", Risk.Low, LocalDateTime.now());
-		//Log log1 = new Log(1, LogType.Login, LogStatus.Ok, machine, us, LocalDateTime.now(), "login success!");
+		for (int i = 0;i<5;i++) {
+			Log log = new Log(LogType.Information, LogStatus.Ok, new Machine(), new User(), LocalDateTime.now(), "text", InformationSystem.PaymentSystem);
+			this.kieSession.insert(log);
+		}
+		for (int i = 0;i<5;i++) {
+			Log log = new Log(LogType.Login, LogStatus.Ok, new Machine(), new User(), LocalDateTime.now(), "text", InformationSystem.SecuritySystem);
+			this.kieSession.insert(log);
+		}
+		this.kieSession.fireAllRules();
+	}
 		
-		User us = new User(1L, "username1", "password1", Risk.High, LocalDateTime.now(), true);
-		User us2 = new User(2L, "username2", "password2", Risk.Low, LocalDateTime.now(), false);
-		User us3 = new User(3L, "username3", "password3", Risk.Moderate, LocalDateTime.now(), true);
-		User us4 = new User(4L, "username4", "password4", Risk.Extreme, LocalDateTime.now(), false);
-		
-		userRepository.save(us);
-		userRepository.save(us2);
-		userRepository.save(us3);
-		userRepository.save(us4);
-		
-		Alarm highAlarm = new Alarm(1L, AlarmType.Antivirus, us3, machine, LocalDateTime.now(), InformationSystem.SecuritySystem);
-		Alarm moderateAlarm = new Alarm(2L, AlarmType.Antivirus, us2, machine, LocalDateTime.now(), InformationSystem.SecuritySystem);
-		//Alarm extremeAlarm = new Alarm(3L, AlarmType.Antivirus, us, malMachine, LocalDateTime.now(), InformationSystem.SecuritySystem);
-		
-		Log log1 = new Log(1L, LogType.Login, LogStatus.Ok, malMachine, us, LocalDateTime.now(), "login", InformationSystem.PaymentSystem);
-		
-		kieSession.insert(us);
-		kieSession.insert(us2);
-		kieSession.insert(us3);
-		kieSession.insert(us4);
-		
-		kieSession.insert(highAlarm);
-		kieSession.insert(moderateAlarm);
-		
-		
-		Machine machine = new Machine ("192.168.20.60", false, OperatingSystem.Windows);
-		User us = userRepository.findByUsername("username4");
-		Log log1 = new Log(2L, LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now().minusHours(1).minusMinutes(1), "login failed", InformationSystem.PaymentSystem);
-		Log log2 = new Log(3L, LogType.Login, LogStatus.Error, machine, us, LocalDateTime.now().minusHours(1).minusMinutes(1), "login failed", InformationSystem.PaymentSystem);
-		
-		Log log3 = new Log(1L, LogType.Login, LogStatus.Ok, machine, us, LocalDateTime.now().minusHours(1), "login success", InformationSystem.PaymentSystem);
-
-		Log log4 = new Log(4L, LogType.Information, LogStatus.Ok, machine, us, log3.getTime().plusSeconds(10), "profile info changed", InformationSystem.PaymentSystem);
-		
-		Alarm alarm = new Alarm(1L, AlarmType.Antivirus, us, machine, LocalDateTime.now().minusMonths(2), InformationSystem.PaymentSystem);
-		
-		
-		
-		
-		//Log log1 = new Log();
-
-		kieSession.insert(machine);
-		kieSession.insert(us);
-		kieSession.insert(alarm);
-		kieSession.insert(log1);
-		kieSession.insert(log2);
-		kieSession.insert(log3);
-		kieSession.insert(log4);
-		//kieSession.insert(log2);
-		kieSession.fireAllRules();
-		//kieSession.dispose();
-		return log1;*/
-	//}
-	
 	public List<LogDTO> getAllLogs(){
 		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
 		ArrayList<Log> logs = (ArrayList<Log>) logRepository.findAll();
 		for (Log l:logs){
 			LogDTO logDTO = new LogDTO();
 			logDTO.setId(l.getId());
-			logDTO.setMachineIp(l.getMachine().getIp());
+			logDTO.setMachineId(l.getMachine().getId());
 			logDTO.setStatus(l.getStatus());
 			logDTO.setText(l.getText());
 			logDTO.setTime(l.getTime());
 			logDTO.setType(l.getType());
-			logDTO.setInformationSystem(l.getInformationSystem());
 			if (l.getUser()!=null){
 				logDTO.setUserUsername(l.getUser().getUsername());
 			}			
@@ -397,13 +386,12 @@ public class SiemCenterService {
 		    Log log = (Log) row.get( "$result" ); //you can retrieve all the bounded variables here
 		    LogDTO logDTO = new LogDTO();
 		    logDTO.setId(log.getId());
-		    logDTO.setMachineIp(log.getMachine().getIp());
+		    logDTO.setMachineId(log.getMachine().getId());
 		    logDTO.setStatus(log.getStatus());
 		    logDTO.setText(log.getText());
 		    logDTO.setTime(log.getTime());
 		    logDTO.setType(log.getType());
 		    logDTO.setUserUsername(log.getUser().getUsername());
-		    logDTO.setInformationSystem(l.getInformationSystem());
 		    logsDTO.add(logDTO);
 		}
 		return logsDTO;
@@ -429,7 +417,7 @@ public class SiemCenterService {
 	
 	public boolean createLog(LogDTO logDTO){
 		Log log = new Log();
-		Machine machine = machineRepository.findByIp(logDTO.getMachineIp());
+		Machine machine = machineRepository.getOne(logDTO.getMachineId());
 		if (machine!=null){
 			log.setMachine(machine);
 		}else{
@@ -439,7 +427,6 @@ public class SiemCenterService {
 		log.setText(logDTO.getText());
 		log.setTime(logDTO.getTime());
 		log.setType(logDTO.getType());
-		log.setInformationSystem(logDTO.getInformationSystem());
 		User user = userRepository.findByUsername(logDTO.getUserUsername());
 		if (user!=null){
 			log.setUser(user);
@@ -447,6 +434,18 @@ public class SiemCenterService {
 		logRepository.save(log);
 		return true;
 		
+	}
+	
+	public Object generateUsersWithOver6Alarms() {
+		return this.kieSession.getGlobal("usersAnyAlarms");
+	}
+	
+	public Object generateUsersWithOver10AntivirusAlarms() {
+		return this.kieSession.getGlobal("usersAntivirusAlarms");
+	}
+	
+	public Object generateInfSys() {
+		return this.kieSession.getGlobal("infSys");
 	}
 	
 	public void setUserRisk(User user) {
@@ -457,7 +456,10 @@ public class SiemCenterService {
 		machineRepository.save(machine);
 	}
 	
-	public boolean threatTemplate(String noOfThreats, String periodOfTime) {
+	public void saveAlarm(Alarm alarm) {
+		alarmRepository.save(alarm);
+  }
+  public boolean threatTemplate(String noOfThreats, String periodOfTime) {
 		
 		InputStream template = SiemCenterService.class.getResourceAsStream("/sbnz/templates/rule_templates.drt");
 		
@@ -510,8 +512,8 @@ public class SiemCenterService {
 	            kieSession.dispose();
 	    }
 	}
-
-	public List<LogDTO> searchLogsDatabase(LogDTO searchLog) {
+  
+  public List<LogDTO> searchLogsDatabase(LogDTO searchLog) {
 		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
 		ArrayList<Log> logs = (ArrayList<Log>) logRepository.findAll();
 		
@@ -631,3 +633,4 @@ public class SiemCenterService {
 	}
 	
 }
+
