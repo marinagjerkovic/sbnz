@@ -8,5 +8,5 @@ import sbnz.integracija.siem_center.facts.Machine;
 
 @Repository
 public interface MachineRepository extends JpaRepository<Machine, Long>{
-
+	Machine findByIp(String ip);
 }

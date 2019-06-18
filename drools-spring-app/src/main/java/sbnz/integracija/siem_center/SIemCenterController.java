@@ -207,4 +207,25 @@ public class SIemCenterController {
 		
 	}
 	
+	@RequestMapping(path= "/search/{database}" ,method=RequestMethod.POST, consumes="application/json")
+	public ResponseEntity<List<LogDTO>> searchLogs(@RequestBody LogDTO searchLog, @PathVariable boolean database){
+		List<LogDTO> logsDTO = null;
+		if (database){
+			logsDTO = siemCenterService.searchLogsDatabase(searchLog);
+		}else{
+			logsDTO = siemCenterService.searchLogsWorkingMemory(searchLog);
+		}
+		return new ResponseEntity<List<LogDTO>>(logsDTO, HttpStatus.OK);
+	}
+	
+	@RequestMapping(path= "/searchRegex/{database}" ,method=RequestMethod.POST, consumes="text/plain")
+	public ResponseEntity<List<LogDTO>> searchLogsRegex(@RequestBody String regexString, @PathVariable boolean database){
+		List<LogDTO> logsDTO = null;
+		if (database){
+			logsDTO = siemCenterService.searchLogsDatabaseRegex(regexString);
+		}else{
+			logsDTO = siemCenterService.searchLogsWorkingMemoryRegex(regexString);
+		}
+		return new ResponseEntity<List<LogDTO>>(logsDTO, HttpStatus.OK);
+	}
 }

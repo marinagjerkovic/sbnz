@@ -2,6 +2,7 @@ package sbnz.integracija.siem_center.factsDTO;
 
 import java.time.LocalDateTime;
 
+import sbnz.integracija.siem_center.facts.InformationSystem;
 import sbnz.integracija.siem_center.facts.LogStatus;
 import sbnz.integracija.siem_center.facts.LogType;
 
@@ -9,10 +10,11 @@ public class LogDTO {
 	private Long id;
 	private LogType type;
 	private LogStatus status;
-	private Long machineId;
+	private String machineIp;
 	private String userUsername;
 	private LocalDateTime time;
 	private String text;
+	private InformationSystem informationSystem;
 	
 	
 	
@@ -22,16 +24,17 @@ public class LogDTO {
 
 
 
-	public LogDTO(Long id, LogType type, LogStatus status, Long machineId, String userUsername, LocalDateTime time,
-			String text) {
+	public LogDTO(Long id, LogType type, LogStatus status, String machineIp, String userUsername, LocalDateTime time,
+			String text, InformationSystem informationSystem) {
 		super();
 		this.id = id;
 		this.type = type;
 		this.status = status;
-		this.machineId = machineId;
+		this.machineIp = machineIp;
 		this.userUsername = userUsername;
 		this.time = time;
 		this.text = text;
+		this.informationSystem = informationSystem;
 	}
 
 
@@ -72,14 +75,14 @@ public class LogDTO {
 
 
 
-	public Long getMachineId() {
-		return machineId;
+	public String getMachineIp() {
+		return machineIp;
 	}
 
 
 
-	public void setMachineId(Long machineId) {
-		this.machineId = machineId;
+	public void setMachineIp(String machineIp) {
+		this.machineIp = machineIp;
 	}
 
 
@@ -116,6 +119,18 @@ public class LogDTO {
 
 	public void setText(String text) {
 		this.text = text;
+	}
+
+
+
+	public InformationSystem getInformationSystem() {
+		return informationSystem;
+	}
+
+
+
+	public void setInformationSystem(InformationSystem informationSystem) {
+		this.informationSystem = informationSystem;
 	}
 	
 	
