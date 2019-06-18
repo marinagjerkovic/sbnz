@@ -3,6 +3,7 @@ package sbnz.integracija.siem_center.factsDTO;
 import java.time.LocalDateTime;
 
 import sbnz.integracija.siem_center.facts.InformationSystem;
+import sbnz.integracija.siem_center.facts.Log;
 import sbnz.integracija.siem_center.facts.LogStatus;
 import sbnz.integracija.siem_center.facts.LogType;
 
@@ -20,6 +21,18 @@ public class LogDTO {
 	
 	public LogDTO() {
 		super();
+	}
+	
+	public LogDTO(Log l) {
+		super();
+		this.id = l.getId();
+		this.type = l.getType();
+		this.status = l.getStatus();
+		this.machineIp = l.getMachine().getIp();
+		this.userUsername = l.getUser().getUsername();
+		this.time = l.getTime();
+		this.text = l.getText();
+		this.informationSystem = l.getInformationSystem();
 	}
 
 
@@ -131,6 +144,13 @@ public class LogDTO {
 
 	public void setInformationSystem(InformationSystem informationSystem) {
 		this.informationSystem = informationSystem;
+	}
+
+	@Override
+	public String toString() {
+		return "LogDTO [id=" + id + ", type=" + type + ", status=" + status + ", machineIp=" + machineIp
+				+ ", userUsername=" + userUsername + ", time=" + time + ", text=" + text + ", informationSystem="
+				+ informationSystem + "]";
 	}
 	
 	

@@ -13,11 +13,28 @@ import sbnz.integracija.siem_center.facts.LogStatus;
 import sbnz.integracija.siem_center.facts.LogType;
 import sbnz.integracija.siem_center.facts.User;
 import sbnz.integracija.siem_center.facts.InformationSystem;
+import sbnz.integracija.siem_center.factsDTO.LogDTO;
 
 global SiemCenterService service;
 
-query "getObjectsOfLog"
+query "getAllLogs"
 	$log: Log()
+end
+
+query "getLogsRegex" (String regex)
+	$log: Log(text matches regex)
+end
+
+query "searchLogs" (LogDTO criteria)
+	$log: Log(
+		//!criteria.getInformationSystem().equals(null) && criteria.getInformationSystem().equals(informationSystem),
+		//!criteria.getMachineIp().equals(null) && criteria.getMachineIp().equals(machine.getIp()),
+		//!criteria.getStatus().equals(null) && criteria.getStatus().equals(status),
+		//!criteria.getTime().equals(null) && criteria.getTime().equals(time),
+		//!criteria.getType().equals(null) && criteria.getTime().equals(type),
+		//!criteria.getUserUsername().equals(null) && criteria.getUserUsername().equals(user.getUsername()),	
+		!criteria.getText().equals(null) && text.contains(criteria.getText())
+	)
 end
 
 rule "Login error on same machine"
@@ -33,7 +50,7 @@ rule "Login error on same machine"
 		)
 	then
 		System.out.println("ALARM: Login error on same machine!");
-		Alarm alarm = new Alarm(AlarmType.Login, new User(), $machine, LocalDateTime.now(), null);
+		Alarm alarm = new Alarm(AlarmType.Login, null, $machine, LocalDateTime.now(), null);
 		service.saveAlarm(alarm);
 		insert(alarm);
 end
@@ -93,7 +110,7 @@ rule "15 login errors from same IP address in the last 5 days"
 		)
     then
 		System.out.println("ALARM: " +$list.size()+" login errors from same IP address in the last 5 days!");
-		Alarm alarm = new Alarm(AlarmType.Login, new User(), $machine, LocalDateTime.now(), null);
+		Alarm alarm = new Alarm(AlarmType.Login, null, $machine, LocalDateTime.now(), null);
 		service.saveAlarm(alarm);
 		insert(alarm);
 end
@@ -204,7 +221,7 @@ rule "Seven or more threats from the same machine"
 		)
 	then
 		System.out.println("ALARM: "+$list.size()+" threats from ip address: "+$machine.getIp()+"!");
-		Alarm alarm = new Alarm(AlarmType.Antivirus, new User(), $machine, LocalDateTime.now(), null);
+		Alarm alarm = new Alarm(AlarmType.Antivirus, null, $machine, LocalDateTime.now(), null);
 		service.saveAlarm(alarm);
 		insert(alarm);
 end
