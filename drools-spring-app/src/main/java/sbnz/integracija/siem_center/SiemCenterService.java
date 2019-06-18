@@ -376,11 +376,12 @@ public class SiemCenterService {
 		for (Log l:logs){
 			LogDTO logDTO = new LogDTO();
 			logDTO.setId(l.getId());
-			logDTO.setMachineId(l.getMachine().getId());
+			logDTO.setMachineIp(l.getMachine().getIp());
 			logDTO.setStatus(l.getStatus());
 			logDTO.setText(l.getText());
 			logDTO.setTime(l.getTime());
 			logDTO.setType(l.getType());
+			logDTO.setInformationSystem(l.getInformationSystem());
 			if (l.getUser()!=null){
 				logDTO.setUserUsername(l.getUser().getUsername());
 			}			
@@ -396,12 +397,13 @@ public class SiemCenterService {
 		    Log log = (Log) row.get( "$result" ); //you can retrieve all the bounded variables here
 		    LogDTO logDTO = new LogDTO();
 		    logDTO.setId(log.getId());
-		    logDTO.setMachineId(log.getMachine().getId());
+		    logDTO.setMachineIp(log.getMachine().getIp());
 		    logDTO.setStatus(log.getStatus());
 		    logDTO.setText(log.getText());
 		    logDTO.setTime(log.getTime());
 		    logDTO.setType(log.getType());
 		    logDTO.setUserUsername(log.getUser().getUsername());
+		    logDTO.setInformationSystem(l.getInformationSystem());
 		    logsDTO.add(logDTO);
 		}
 		return logsDTO;
@@ -427,7 +429,7 @@ public class SiemCenterService {
 	
 	public boolean createLog(LogDTO logDTO){
 		Log log = new Log();
-		Machine machine = machineRepository.getOne(logDTO.getMachineId());
+		Machine machine = machineRepository.findByIp(logDTO.getMachineIp());
 		if (machine!=null){
 			log.setMachine(machine);
 		}else{
@@ -437,6 +439,7 @@ public class SiemCenterService {
 		log.setText(logDTO.getText());
 		log.setTime(logDTO.getTime());
 		log.setType(logDTO.getType());
+		log.setInformationSystem(logDTO.getInformationSystem());
 		User user = userRepository.findByUsername(logDTO.getUserUsername());
 		if (user!=null){
 			log.setUser(user);
@@ -506,6 +509,125 @@ public class SiemCenterService {
 	        if (kieSession != null)
 	            kieSession.dispose();
 	    }
+	}
+
+	public List<LogDTO> searchLogsDatabase(LogDTO searchLog) {
+		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
+		ArrayList<Log> logs = (ArrayList<Log>) logRepository.findAll();
+		
+		LogType type = searchLog.getType();
+		LogStatus status = searchLog.getStatus();
+		String machineIp = searchLog.getMachineIp();
+		String username = searchLog.getUserUsername();
+		InformationSystem informationSystem = searchLog.getInformationSystem();
+		LocalDateTime time = searchLog.getTime();
+		
+		for (Log l:logs){			
+			if (type==null){
+				type=l.getType();
+			}
+			if (status==null){
+				status=l.getStatus();
+			}
+			if (machineIp==null){
+				machineIp=l.getMachine().getIp();
+			}
+			if (username==null){
+				username=l.getUser().getUsername();
+			}
+			if (informationSystem==null){
+				informationSystem=l.getInformationSystem();
+			}
+			
+			LogDTO logDTO = new LogDTO();
+			if (l.getInformationSystem().equals(informationSystem) && l.getMachine().getIp().equals(machineIp) && l.getStatus().equals(status) && l.getTime().equals(time) && l.getType().equals(type) && l.getUser().getUsername().equals(username)){
+				logDTO.setId(l.getId());
+				logDTO.setInformationSystem(l.getInformationSystem());
+				logDTO.setMachineIp(l.getMachine().getIp());
+				logDTO.setStatus(l.getStatus());
+				logDTO.setText(l.getText());
+				logDTO.setTime(l.getTime());
+				logDTO.setType(l.getType());
+				logDTO.setUserUsername(l.getUser().getUsername());
+				logsDTO.add(logDTO);
+			}
+			
+			
+		}
+		return logsDTO;
+	}
+	
+	
+	public List<LogDTO> searchLogsWorkingMemory(LogDTO searchLog) {
+		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
+		
+		QueryResults results = kieSession.getQueryResults( "getObjectsOfLog" );
+		
+		LogType type = searchLog.getType();
+		LogStatus status = searchLog.getStatus();
+		String machineIp = searchLog.getMachineIp();
+		String username = searchLog.getUserUsername();
+		InformationSystem informationSystem = searchLog.getInformationSystem();
+		LocalDateTime time = searchLog.getTime();
+		
+		for ( QueryResultsRow row : results ) {
+		    Log l = (Log) row.get( "$result" ); //you can retrieve all the bounded variables here
+		    
+		    if (type==null){
+				type=l.getType();
+			}
+			if (status==null){
+				status=l.getStatus();
+			}
+			if (machineIp==null){
+				machineIp=l.getMachine().getIp();
+			}
+			if (username==null){
+				username=l.getUser().getUsername();
+			}
+			if (informationSystem==null){
+				informationSystem=l.getInformationSystem();
+			}
+			LogDTO logDTO = new LogDTO();
+			if (l.getInformationSystem().equals(informationSystem) && l.getMachine().getIp().equals(machineIp) && l.getStatus().equals(status) && l.getTime().equals(time) && l.getType().equals(type) && l.getUser().getUsername().equals(username)){
+				logDTO.setId(l.getId());
+				logDTO.setInformationSystem(l.getInformationSystem());
+				logDTO.setMachineIp(l.getMachine().getIp());
+				logDTO.setStatus(l.getStatus());
+				logDTO.setText(l.getText());
+				logDTO.setTime(l.getTime());
+				logDTO.setType(l.getType());
+				logDTO.setUserUsername(l.getUser().getUsername());
+				logsDTO.add(logDTO);
+			}
+			
+		    
+		}
+		return logsDTO;
+		
+	}
+
+	public List<LogDTO> searchLogsDatabaseRegex(String regexString) {
+		//searchovanje logova po regexu iz baze
+		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
+		ArrayList<Log> logs = (ArrayList<Log>) logRepository.findAll();
+		//dodati proveru za svaki log iz logs da li odgovara regexu
+		return logsDTO;
+	}
+
+	public List<LogDTO> searchLogsWorkingMemoryRegex(String regexString) {
+		List<LogDTO> logsDTO = new ArrayList<LogDTO>();
+		
+		QueryResults results = kieSession.getQueryResults( "getObjectsOfLog" );
+		
+		for ( QueryResultsRow row : results ) {
+		    Log l = (Log) row.get( "$result" ); //you can retrieve all the bounded variables here
+		    
+		    //proveri za l da li odgovara regexu, ako da dodaj u listu nov dto
+			
+		    
+		}
+		return logsDTO;
 	}
 	
 }
